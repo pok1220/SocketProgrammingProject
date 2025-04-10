@@ -9,7 +9,7 @@ const server = http.createServer(app)
 const cors= require('cors')
 const User = require('./models/User');
 const GroupChat = require('./models/GroupChat')
-
+const jwt = require('jsonwebtoken');
 dotenv.config({path:'./config/config.env'})
 connectDB(); //use db
 
@@ -24,25 +24,36 @@ app.get("/", (req, res) => {
 
 const io= new Server(server,{
     cors:{
-        origin: "http://localhost:5173",
+        origin: "http://localhost:3000",
         methods:["GET","POST"],
     },
 });
 
 //try to get token
-io.use((socket, next) =>{
-    // const token = socket.handshake.auth.token;
-    // const payload = j
-})
+io.use((socket, next) => {
+    const token = socket.handshake.auth.token; // Token sent by the client in handshake
+    if (!token) {
+        return next(new Error('Authentication error'));
+    }
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+        if (err) {
+            return next(new Error('Authentication error'));
+        }
+        socket.userId = decoded.id; // Add userId to socket for later use
+        next();
+    });
+});
+
+
 io.on("connection",async (socket)=>{
     console.log(`User Connected: ${socket.userId}`)//change to socket userId later
 
     //join to everyroom this user is a member
     const userId = socket.userId;
-    const userRooms = await User.findById(userId);
-    userRooms.room.array.forEach(room => {
-        socket.join(room._id.toString());
-    });
+    // const userRooms = await User.findById(userId);
+    // userRooms.room.array.forEach(room => {
+    //     socket.join(room._id.toString());
+    // });
 
     //create new room from type of room, and room members
     socket.on('create_room', async (data)=>{
