@@ -6,15 +6,14 @@ const User= require('../models/User');
 
 exports.register=async (req,res,next)=> {
     try {
-        console.log("OK1")
-        const {name,email,password}=req.body;
+        const {name,email,password,isOn}=req.body;
         //Create User
         const user= await User.create({
             name,
             email,
             password,
+            isOn
         });
-        console.log("OK")
         // const token=user.getSignedJwtToken();
         // res.status(200).json({success:true,data:user,token:token})
         sendTokenResponse(user,200,res)
@@ -28,6 +27,7 @@ exports.register=async (req,res,next)=> {
 //@access Public
 exports.login=async (req,res,next)=>{
     try{
+        console.log("OK")
         const {email,password}=req.body;
 
         //Validate email and password
@@ -48,7 +48,7 @@ exports.login=async (req,res,next)=>{
         if(!isMatch){ //password wrong
             return res.status(401).json({success:false,msg:"Invalid credential"});
         }
-
+        console.log("Loginsuccess",user)
         //Create token
         // const token=user.getSignedJwtToken();
         // res.status(200).json({success:true,token:token})
@@ -102,6 +102,7 @@ const sendTokenResponse=(user,statusCode,res)=>{
 
     res.status(statusCode).cookie('token',token,options).json({ //ตอนนี้เข้าใจว่าดึง cookie มาใช้เก็บ jwt เวลาจะใช้ jwt ก็ไปเอามาจาก cookie (สำหรับ frontend/test postman)
         success:true, 
+        data:user,
         token
     })
     // res.status(statusCode)/*.cookie('token',token,options)*/.json({

@@ -25,8 +25,8 @@ const UserSchema= new mongoose.Schema({
     picture:{
         type:String,
     },
-    room:{
-        type: [mongoose.Schema.ObjectId]
+    isOn:{
+        type:Boolean
     },
     resetPasswordToken:String,
     resetPasswordExpire: Date,
