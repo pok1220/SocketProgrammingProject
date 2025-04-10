@@ -6,7 +6,8 @@ const User= require('../models/User');
 
 exports.register=async (req,res,next)=> {
     try {
-        const {name,email,password,isOn}=req.body;
+        const {name,email,password}=req.body;
+        const isOn=true;
         //Create User
         const user= await User.create({
             name,
@@ -36,12 +37,12 @@ exports.login=async (req,res,next)=>{
         }
 
         //Check for user
-        const user=await User.findOne({email}).select('+password');
-
+        const update=await User.findOneAndUpdate({email},{isOn:true})
         //No user is in
-        if(!user){
+        if(!update){
             return res.status(400).json({success:false,msg:"Invalid credential"});
         }
+        const user=await User.findOne({email}).select('+password');
 
         const isMatch=await user.matchPassword(password)
         

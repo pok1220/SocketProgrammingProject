@@ -2,20 +2,29 @@
 import Button from "@/app/ui/ButtonLogin";
 import TextBox from "@/app/ui/Textbox";
 import { signIn } from "next-auth/react";
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { register } from "@/libs/register";
 
 
-const LoginPage = () => {
+const RegisterPage = () => {
   const router= useRouter()
-  const email = useRef("");
-  const pass = useRef("");
+  const [email,setEmail] = useState<string>("")
+  const [pass,setPass] = useState<string>("")
+  const [name,setName] = useState<string>("")
 
   const onSubmit = async () => {
+
+    const res = await register({name:name,email:email,password:pass})
+    if (!res.data){
+        console.log("error")
+        return;
+    }
+
     const result = await signIn("credentials", {
-      email: email.current,
-      password: pass.current,
+      email: email ,
+      password: pass,
       redirect: false,
       callbackUrl: "/",
     });
@@ -34,22 +43,27 @@ const LoginPage = () => {
       }
     >
       <div className="px-7 py-4 shadow bg-white rounded-md flex flex-col gap-2">
+      <TextBox
+          labelText="Name"
+          className="text-black"
+          onChange={(e) => {setName(e.target.value)}}
+        />
         <TextBox
           labelText="Email"
           className="text-black"
-          onChange={(e) => (email.current = e.target.value)}
+          onChange={(e) => {setEmail(e.target.value)}}
         />
         <TextBox
           labelText="Password"
           className="text-black"
           type={"password"}
-          onChange={(e) => (pass.current = e.target.value)}
+          onChange={(e) => {setPass(e.target.value)}}
         />
-        <Button onClick={onSubmit}>Login</Button>
-        <span className="text-center"><Link className="text-black" href={'/auth/register'} >Register?</Link></span>
+        <Button onClick={onSubmit}>Register</Button>
       </div>
     </div>
   );
 };
 
-export default LoginPage;
+export default RegisterPage;
+ 
