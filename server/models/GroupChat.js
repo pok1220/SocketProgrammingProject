@@ -26,4 +26,4 @@ const GroupChatSchema= new mongoose.Schema({
     }
 })
 
-module.exports=mongoose.model('GroupChat',AppointmentSchema)
+module.exports=mongoose.model('GroupChat',GroupChatSchema)
