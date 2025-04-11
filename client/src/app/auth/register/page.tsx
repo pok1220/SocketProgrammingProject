@@ -1,6 +1,6 @@
 "use client";
-import Button from "@/app/ui/ButtonLogin";
-import TextBox from "@/app/ui/Textbox";
+import Button from "@/app/components/ButtonLogin";
+import TextBox from "@/app/components/ui/Textbox";
 import { signIn } from "next-auth/react";
 import React, { useRef, useState } from "react";
 import { useRouter } from "next/navigation";

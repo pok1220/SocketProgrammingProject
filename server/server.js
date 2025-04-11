@@ -9,23 +9,36 @@ const server = http.createServer(app)
 const cors= require('cors')
 const User = require('./models/User');
 const GroupChat = require('./models/GroupChat')
+const groupChat=require('./routes/groupchat')
 const jwt = require('jsonwebtoken');
 dotenv.config({path:'./config/config.env'})
 connectDB(); //use db
 
 
+
 app.use(express.json())
-app.use(cors());
+const corsOptions = {
+    origin: 'http://localhost:3000', // Allow frontend origin
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,  
+};
+
+app.use(cors(corsOptions));  
 app.use('/api/v1/auth',user)
+app.use('/api/v1/groupchat',groupChat)
+
 app.get("/", (req, res) => {
     res.send("Hello World!");
 });
 
 
-const io= new Server(server,{
-    cors:{
-        origin: "http://localhost:3000",
-        methods:["GET","POST"],
+const io = new Server(server, {
+    cors: {
+        origin: 'http://localhost:3000', // The specific origin of the client
+        methods: ['GET', 'POST', 'PUT', 'DELETE'],
+        allowedHeaders: ['Content-Type', 'Authorization'],
+        credentials: true, // Allow credentials
     },
 });
 
@@ -39,6 +52,7 @@ io.use((socket, next) => {
         if (err) {
             return next(new Error('Authentication error'));
         }
+        console.log("decode",decoded)
         socket.userId = decoded.id; // Add userId to socket for later use
         next();
     });
@@ -46,8 +60,9 @@ io.use((socket, next) => {
 
 
 io.on("connection",async (socket)=>{
-    console.log(`User Connected: ${socket.userId}`)//change to socket userId later
-
+    // console.log(`User Connected: ${socket.userId}`)
+    console.log("Socket Id",socket.id)
+    socket.broadcast.emit("online")
     //join to everyroom this user is a member
     const userId = socket.userId;
     // const userRooms = await User.findById(userId);
@@ -56,20 +71,29 @@ io.on("connection",async (socket)=>{
     // });
 
     //create new room from type of room, and room members
-    socket.on('create_room', async (data)=>{
+    socket.on('online',async (data)=>{
         try{
-            const newroom = await GroupChat.create({
-                member: data.userIds,
-                type: data.type,
-                //roomid?
-            });
+            socket.broadcast.emit("user_status", data);
+        }catch(err){
+            console.log(err);
+        }
+    })
+    socket.on('create_room', async (data)=>{ //Implement along boom already
+        try{
+            console.log("data",data)
+            socket.broadcast.emit("receive_group", data);
+            // const newroom = await GroupChat.create({
+            //     member: data.userIds,
+            //     type: data.type,
+            //     //roomid?
+            // });
             
-            //add to user's room
-            await User.updateOne({
-                _id: userId,
-            }, {$addToSet: {room: newroom._id}});
+            // //add to user's room
+            // await User.updateOne({
+            //     _id: userId,
+            // }, {$addToSet: {room: newroom._id}});
 
-            socket.join(newroom._id.toString());
+            // socket.join(newroom._id.toString());
         }catch(err){
             console.log(err);
         }
@@ -77,7 +101,7 @@ io.on("connection",async (socket)=>{
     })
 
     //join created group
-    socket.on('join_room',async (data)=>{
+    socket.on('join_room',async (data)=>{ //TODO
         try{
             await GroupChat.updateOne({
                 _id: data.roomId,               
@@ -92,7 +116,7 @@ io.on("connection",async (socket)=>{
         }
     })
 
-    socket.on("create-something",async(data)=>{
+    socket.on("create-something",async(data)=>{//TODO
         try{
             await GroupChat.updateOne({
                 _id: data.room,               
@@ -106,12 +130,12 @@ io.on("connection",async (socket)=>{
     })
 
     //all chat room?
-    socket.on("all_chat", (data)=>{
+    socket.on("all_chat", (data)=>{//TODO
         socket.broadcast(data);
     })
 
     //leave chat
-    socket.on('leave_room', async(data)=>{
+    socket.on('leave_room', async(data)=>{ //May be it's no need because disconnect socket is enough
         await GroupChat.updateOne(
             { _id: data.room},
             {

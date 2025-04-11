@@ -86,6 +86,39 @@ exports.getMe=async(req,res,next)=>{
 }
 
 
+//@desc Get All user in system
+//@route  Get /api/v1/auth/users
+//@access Public
+exports.getUsers=async(req,res,next)=>{
+    const user= await User.find().select("id name isOn");
+    res.status(200).json({
+        success:true,
+        data: user
+    });
+}
+
+
+//@desc Put Status
+//@route  Get /api/v1/auth/userIsOn
+//@access Public
+exports.putUserStatus=async(req,res,next)=>{
+    console.log("req.body",req.body)
+    const user= await User.findByIdAndUpdate(req.params.id,req.body,{
+        new: true,
+        runValidators:true
+    })
+
+    if (!user) {
+        return res.status(400).json({ success: false });
+      }
+
+    res.status(200).json({
+        success:true,
+        data: user
+    });
+}
+
+
 
 //Get token from model create cookie and send response
 const sendTokenResponse=(user,statusCode,res)=>{

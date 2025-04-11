@@ -1,50 +1,71 @@
-"use client"
-import { useSession } from 'next-auth/react';
-import { useEffect, useState } from 'react';
-import { io } from 'socket.io-client';
+// app/providers/SocketProvider.tsx
+"use client";
 
+import putUserStatus from "@/libs/putUserStatus";
+import { useSession } from "next-auth/react";
+import { useEffect, useState, createContext, useContext } from "react";
+import {UserStatusResponse} from "../../interface"
+import { io, Socket } from "socket.io-client";
 
-let socket:any;
+const SocketContext = createContext<Socket | null>(null);
 
-const SocketProvider = ({ children }:{children:React.ReactNode}) => {
+export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const { data: session, status } = useSession();
-  const [isConnected, setIsConnected] = useState(false);
+  const token=session?.user.token??""
+  const userID=session?.user.id??""
+  const [socket, setSocket] = useState<Socket | null>(null);
 
   useEffect(() => {
-    if (status === 'authenticated' && session?.user?.token) {
-      const URL = process.env.NODE_ENV === 'production' ? 'http://localhost:8080' : 'http://localhost:8080';
+    if (status === "authenticated" && session?.user?.token) {
+      const URL =
+        process.env.NODE_ENV === "production"
+          ? "https://your-production-url"
+          : "http://localhost:8080";
 
-      // Create a socket connection once the session is available
-      console.log("sessionss",session.user.token)
-      socket = io(URL, {
+      const socketInstance = io(URL, {
         auth: {
           token: session.user.token,
         },
       });
 
-      socket.on('connect', () => {
-        console.log('Socket connected');
-        setIsConnected(true);
+      socketInstance.on("connect", () => {
+        console.log("Socket connected");
+        setSocket(socketInstance);
+        const data:UserStatusResponse={userID:userID,isOn:true}
+        socketInstance.emit("online",data)
+        const res=putUserStatus(true,token,userID)
       });
 
-      socket.on('disconnect', () => {
-        console.log('Socket disconnected');
-        setIsConnected(false);
+      socketInstance.on("disconnect", () => {
+        console.log("Socket disconnected");
+        setSocket(null);
       });
+
+      // Handle tab close or page refresh
+      const handleBeforeUnload = () => {
+        if (socketInstance?.connected) {
+          // Emit offline status before unloading
+          const data: UserStatusResponse = { userID, isOn: false };
+          socketInstance.emit("online", data);
+          putUserStatus(false, token, userID);
+          socketInstance.disconnect();
+        }
+      };
+
+      window.addEventListener("beforeunload", handleBeforeUnload);
 
       return () => {
-        // Clean up the socket connection when the component is unmounted
-        socket.disconnect();
+        window.removeEventListener("beforeunload", handleBeforeUnload);
+        socketInstance.disconnect();
       };
     }
   }, [session, status]);
 
-  // You can now pass down `socket` and `isConnected` through context or props
   return (
-    <div>
+    <SocketContext.Provider value={socket}>
       {children}
-    </div>
+    </SocketContext.Provider>
   );
 };
 
-export { SocketProvider, socket };
+export const useSocket = () => useContext(SocketContext);
