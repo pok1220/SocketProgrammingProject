@@ -1,7 +1,6 @@
 export interface GroupChat{
     _id?:string,
     name:string,
-    room:string,
     type:string,
     createdAt?:string,
     member:string[]
@@ -23,4 +22,9 @@ export interface User{
 export interface UserStatusResponse {
     userID:string,
     isOn:boolean
+}
+
+export interface CreateGroupResponse {
+    data:GroupChat,
+    success:boolean
 }

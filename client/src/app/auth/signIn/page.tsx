@@ -24,7 +24,7 @@ const LoginPage = () => {
       console.error("Login failed:", result.error);  // Log any errors that occur during login
     } else {
       console.log("Login successful:", result);
-      router.push('/')
+      router.push('/mainpage')
     }
   };
   return (

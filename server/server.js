@@ -60,7 +60,7 @@ io.use((socket, next) => {
 
 
 io.on("connection",async (socket)=>{
-    // console.log(`User Connected: ${socket.userId}`)
+    console.log(`User Connected: ${socket.userId}`)
     console.log("Socket Id",socket.id)
     socket.broadcast.emit("online")
     //join to everyroom this user is a member

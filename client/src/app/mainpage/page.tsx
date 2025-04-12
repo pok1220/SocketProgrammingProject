@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useSocket } from "@/providers/SocketProvider";
 import GroupMenu from "../components/GroupMenu";
-import { GroupChat, User, UserStatusResponse } from "../../../interface";
+import { CreateGroupResponse, GroupChat, User, UserStatusResponse } from "../../../interface";
 import { useSession } from "next-auth/react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "../components/ui/dialog";
 import { Button } from "../components/ui/Button";
@@ -81,15 +81,16 @@ export default function MainPage() {
       message: [],
       name: name,
       member:[userID],
-      room: uuidv4(),
       type: "group",
     };
     // Eject API
-    const res = await createGroupChat(group, session?.user.token ?? "");
+    const res:CreateGroupResponse = await createGroupChat(group, session?.user.token ?? "");
+    console.log("CREATE GROUP",res)
     if (!res) {
       console.log("Error");
       return;
     }
+    group._id=res.data._id
     // Emit Group that Creating
     socket?.timeout(5000).emit("create_room", group, () => {
       console.log("Create Group Emit Client");

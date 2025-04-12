@@ -9,7 +9,7 @@ export default function GroupMenu({ groups }: { groups: GroupChat[] }) {
         </CardHeader>
         <CardContent className="flex flex-col py-5 w-full">
           {groups.map((group) => (
-            <div key={group.room} className="mb-2">
+            <div key={group._id} className="mb-2">
               {group.name}
             </div>
           ))}

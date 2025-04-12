@@ -39,10 +39,10 @@ const GroupChatSchema = new mongoose.Schema({
     enum: ['group', 'private'],
     default: 'private',
   },
-  room: {
-    type: String,
-    required: [true, 'Please Provide Room id'],
-  },
+  // room: {
+  //   type: String,
+  //   required: [true, 'Please Provide Room id'],
+  // },
   createdAt: {
     type: Date,
     default: Date.now,

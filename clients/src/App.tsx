@@ -53,7 +53,7 @@ export default function App() {
       setFooEvents(previous => [...previous, value]);
     }
 
-    function onSubmit(data: Message) {
+    function onReceiveMessage(data: Message) {
       setFooEvents(previous => [
         ...previous,
         { message: data.message, timestamp: data.timestamp, by: "other" }
