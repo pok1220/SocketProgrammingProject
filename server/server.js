@@ -103,14 +103,14 @@ io.on("connection",async (socket)=>{
     //join created group
     socket.on('join_room',async (data)=>{ //TODO
         try{
-            await GroupChat.updateOne({
-                _id: data.roomId,               
-            },{ $addToSet: {member: data.userId}});
+            // await GroupChat.updateOne({
+            //     _id: data.roomId,               
+            // },{ $addToSet: {member: data.userId}});
 
-            await User.updateOne({
-                _id: data.userId,
-            }, {$addToSet: {room: data.roomId}});
-            socket.join(data.roomId);
+            // await User.updateOne({
+            //     _id: data.userId,
+            // }, {$addToSet: {room: data.roomId}});
+            socket.join(data); //data is roomId(mongoObjid of room)
         }catch(err){
             console.log(err);
         }
@@ -118,10 +118,11 @@ io.on("connection",async (socket)=>{
 
     socket.on("create-something",async(data)=>{//TODO
         try{
-            await GroupChat.updateOne({
-                _id: data.room,               
-            },{ $addToSet: {message: data}});
-            socket.to(data.room).emit("receive_message",data)
+            // await GroupChat.updateOne({
+            //     _id: data.room,               
+            // },{ $addToSet: {message: data}});
+            //data is room id
+            socket.to(data).emit("receive_message",data)
             console.log("check",data);
         }catch(err){
             console.log(err);
@@ -136,19 +137,20 @@ io.on("connection",async (socket)=>{
 
     //leave chat
     socket.on('leave_room', async(data)=>{ //May be it's no need because disconnect socket is enough
-        await GroupChat.updateOne(
-            { _id: data.room},
-            {
-                $pull: {
-                    member: data.userId,
-                    message: {userId: data.userId}
-                }
-        })
+        // await GroupChat.updateOne(
+        //     { _id: data.room},
+        //     {
+        //         $pull: {
+        //             member: data.userId,
+        //             message: {userId: data.userId}
+        //         }
+        // })
 
-        await User.updateOne(
-            {_id: data.userId},
-            {$pull : {room: data.room}}
-        )
+        // await User.updateOne(
+        //     {_id: data.userId},
+        //     {$pull : {room: data.room}}
+        // )
+        socket.leave(data);
     })
 })
 

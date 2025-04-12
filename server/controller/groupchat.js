@@ -1,4 +1,5 @@
 const GroupChat = require('../models/GroupChat');
+const User = require('../models/User')
 
 // @desc Get all group chats
 // @route GET /api/v1/groupchats
@@ -116,6 +117,74 @@ exports.deleteGroupChat = async (req, res, next) => {
     }
     await GroupChat.deleteOne({ _id: req.params.id });
     res.status(200).json({ success: true, data: {} });
+  } catch {
+    res.status(400).json({ success: false });
+  }
+};
+
+// @desc Join group chat
+// @route PUT /api/v1/groupchats/join/:roomid
+// @access Private
+exports.joinGroupChat = async (req, res, next) => {
+  try {
+    const groupChat = await GroupChat.updateOne({
+                    _id: req.params.roomid,               
+                },{ $addToSet: {member: req.body.userid}});
+    // const groupChat = await GroupChat.findByIdAndUpdate(req.params.id, req.body, {
+    //   new: true,
+    //   runValidators: true,
+    // });
+    const joinUser = await User.updateOne({
+                    _id: req.body.userid,
+                }, {$addToSet: {room: req.params.roomid}});
+    if (!groupChat || !joinUser) {
+      return res.status(400).json({ success: false });
+    }
+    res.status(200).json({ success: true, data: groupChat });
+  } catch {
+    res.status(400).json({ success: false });
+  }
+};
+
+// @desc Messaging group chat
+// @route PUT /api/v1/groupchats/message/:roomid
+// @access Private
+exports.messageGroupChat = async (req, res, next) => {
+  try {
+    const groupChat = await GroupChat.updateOne({
+      _id: req.params.roomid,               
+    },{ $addToSet: {message: req.body}});
+    if (!groupChat) {
+      return res.status(400).json({ success: false });
+    }
+    res.status(200).json({ success: true, data: groupChat });
+  } catch {
+    res.status(400).json({ success: false });
+  }
+};
+
+// @desc Leave group chat
+// @route PUT /api/v1/groupchats/leave/:roomid
+// @access Private
+exports.leaveGroupChat = async (req, res, next) => {
+  try {
+    const groupChat = await GroupChat.updateOne(
+      { _id: req.params.roomid},
+      {
+          $pull: {
+              member: req.body.userId,
+              message: {userId: req.body.userId}
+          }
+  })
+
+  const user = await User.updateOne(
+      {_id: req.body.userId},
+      {$pull : {room: req.params.roomid}}
+  )
+    if (!groupChat || !user) {
+      return res.status(400).json({ success: false });
+    }
+    res.status(200).json({ success: true, data: {groupChat: groupChat, user: user} });
   } catch {
     res.status(400).json({ success: false });
   }
