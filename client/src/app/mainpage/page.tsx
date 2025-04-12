@@ -17,8 +17,8 @@ import PrivateMenu from "../components/PrivateChat";
 import getUsers from "@/libs/getUsers";
 
 export default function MainPage() {
-  const [groupChats, setGroupChats] = useState<GroupChat[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
+  const [groupChats, setGroupChats] = useState<GroupChat[]>([]);//Handler Group From Other
+  const [users, setUsers] = useState<User[]>([]);//Handler Display User Status
   const { data: session } = useSession();
   const userID= session?.user.id??""
   const token =session?.user.token??""
@@ -27,7 +27,7 @@ export default function MainPage() {
   const socket = useSocket();
 
   useEffect(() => {
-    const fetchGroupChats = async () => {
+    const fetchGroupChats = async () => { //Handler Group From Other
         try {
           const response = await getGroupChats();
           setGroupChats(response);
@@ -36,7 +36,7 @@ export default function MainPage() {
         }
     };
 
-    const fetchUsers = async () => {
+    const fetchUsers = async () => { //Handler Display User Status
       try {
         const response = await getUsers();
         setUsers(response);
@@ -46,12 +46,12 @@ export default function MainPage() {
   };
   
 
-    function onReceiveGroup(group: GroupChat) { //Handler Group From Other
+    function onReceiveGroup(group: GroupChat) { // Handler Group From Other
     console.log("Hello Group from other")
       setGroupChats((previous) => [...previous, group]);
     }
 
-    function onStatus(data: UserStatusResponse) {
+    function onStatus(data: UserStatusResponse) { // Handler Display User Status
       console.log("Hello Other Status");
     
       setUsers(prevUsers =>
@@ -61,16 +61,16 @@ export default function MainPage() {
       );
     }
 
-    socket?.on("receive_group", onReceiveGroup);
-    socket?.on("user_status",onStatus);
+    socket?.on("receive_group", onReceiveGroup); // Handler Group From Other
+    socket?.on("user_status",onStatus);//Handler Display User Status
 
     //Fetch Data in mount
     fetchGroupChats();
-    fetchUsers()
+    fetchUsers()//Handler Display User Status
 
     return () => {
       socket?.off("receive_group", onReceiveGroup);
-      socket?.off("user_status",onStatus);
+      socket?.off("user_status",onStatus);//Handler Display User Status
     };
   }, [session,socket]);
 
@@ -106,53 +106,18 @@ export default function MainPage() {
   };
 
   return (
-    <div className="flex bg-blue-200 justify-center min-h-screen">
-      <div className="flex flex-col items-center sm:w-[70%] w-full my-12 px-6">
-        <h1 className="text-3xl font-semibold mb-6 text-center">Click to Chat</h1>
-        <h2 className="text-black text-center">Connected: {socket?.id}</h2>
-        <div className="grid grid-cols-2 w-full mt-5 gap-x-3">
-          <div className="col-span-1 flex flex-col gap-4">
-            <Dialog open={open} onOpenChange={setOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline" className="m-auto">
-                  Create Group
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>Create Group</DialogTitle>
-                  <DialogDescription>
-                    Make a group you want to join here.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="name" className="text-right">
-                      Group Name
-                    </Label>
-                    <Textarea
-                      id="name"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      className="col-span-3"
-                    />
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button type="button" className="text-black border-2 border-black" onClick={() => {handleCreate()}}>
-                    Save changes
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-
-            <GroupMenu groups={groupChats} />
+    <div className="flex bg-blue-200 justify-center min-h-screen w-full h-full mx-0">
+      <div className="flex flex-col w-[100%] my-12 px-2">
+        <div className="grid sm:grid-cols-3 lg:grid-cols-5 w-full h-[500px] mt-5 gap-x-3 gap-y-10">
+          <div className="sm:col-span-3 lg:col-span-2 bg-white p-4 rounded shadow w-full h-full">
+          
           </div>
-          <div className="col-span-1">
-              <PrivateMenu privates={users}/>
+          <div className="sm:col-span-3 lg:col-span-3 bg-white p-4 rounded shadow w-full h-full">
+          
           </div>
         </div>
       </div>
     </div>
+
   );
 }
