@@ -10,3 +10,8 @@ export interface Message {
     by:string
     room:string
 }
+
+export interface UserStatusResponse {
+    userID:string,
+    isOn:boolean
+}
