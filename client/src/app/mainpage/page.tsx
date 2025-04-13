@@ -15,10 +15,11 @@ import createGroupChat from "@/libs/createGroupChat";
 import getGroupChats from "@/libs/getGroupChats";
 import PrivateMenu from "../components/PrivateChat";
 import getUsers from "@/libs/getUsers";
-import { ChevronDown, LogOut, MessageSquare } from "lucide-react";
+import { ChevronDown, ChevronUp, LogOut, MessageSquare } from "lucide-react";
 import ChatPanel from "../components/ChatPanel";
 import joinGroupChat from "@/libs/joinGroupChat";
 import leaveGroupChat from "@/libs/leaveGroupChat";
+import GroupList from "../components/GroupList";
 
 export default function MainPage() {
   const [groupChats, setGroupChats] = useState<GroupChat[]>([]);//Handler Group From Other
@@ -33,7 +34,12 @@ export default function MainPage() {
   const [selectedGroupChat, setSelectedGroupChat] = useState<GroupChat>();
 
   const toggleGroup = (group: string) => {
-    setExpandedGroup(group);
+    if(expandedGroup === group) {
+      setExpandedGroup("");
+    }else{
+      setExpandedGroup(group);
+    }
+    
   };
 
   // const mockGroupChat: GroupChat = {
@@ -159,12 +165,12 @@ export default function MainPage() {
     };
   }, [session,socket]);
   
-  async function onCreateGroup(name: string) {
+  async function onCreateGroup(name: string, type: string, member: string[]) {
     const group: GroupChat = {
       message: [],
       name: name,
-      member:[userID],
-      type: "group",
+      member: member,
+      type: type,
     };
     // Eject API
     const res:CreateGroupResponse = await createGroupChat(group, session?.user.token ?? "");
@@ -180,6 +186,7 @@ export default function MainPage() {
     });
 
     setGroupChats((previous) => [...previous, group]);
+    return group;
   }
 
   async function joinGroup(group: GroupChat, userID: string) {
@@ -225,25 +232,30 @@ export default function MainPage() {
       console.log("Leave Group Emit Client");
     });
 
-    const newGroupChat : GroupChat[] = groupChats;
-    newGroupChat.forEach((g, index) => {
-      if (g._id === group._id) {
-        groupChats[index] = group;
-      }
-    });
-    setGroupChats(newGroupChat);
-    console.log("Group Chats", newGroupChat);
+    const updatedGroupChats = groupChats.map(g =>
+      g._id === group._id ? { ...g, member: [...group.member] } : g
+    );
+    setGroupChats(updatedGroupChats);
+    
     return group;
   }
 
   const handleCreate = () => {
-    onCreateGroup(name);   
+    onCreateGroup(name, "group", [userID]);   
     setOpen(false);        
     setName("");           
   };
 
-  const chatUser = (userId : string) => {
-
+  const chatUser = async (userId : string) => {
+    const sender = userID;
+    let group = groupChats.find((group) => (group.member.includes(userId) && group.member.includes(sender)));
+    if (group) {
+      setSelectedGroupChat(group);
+    }
+    else {
+      group = await onCreateGroup(userId, "private", [userId, sender]);
+      setSelectedGroupChat(group);
+    }
   };
 
   async function chatGroup(group: GroupChat): Promise<void> {
@@ -265,8 +277,9 @@ export default function MainPage() {
         group = updatedGroup;
       }
     }
-    setSelectedGroupChat(undefined);
-
+    if(group._id === selectedGroupChat?._id){
+      setSelectedGroupChat(undefined);
+    }
   }
 
   return (
@@ -312,41 +325,20 @@ export default function MainPage() {
                 >+</button>
               </div>
               <div className="space-y-2">
-                {groupChats.map((group, i) => (
-                  <div key={i} className="bg-gray-200 rounded">
-                    <div className="flex justify-between items-center px-4 py-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xl">👥</span>
-                        <span>{group.name} ({group.member.length})</span>
-                      </div>
-                      <div className="flex gap-2">
-                        {/* 👇 Leave Group button shows only if user is in group*/}
-                        {group.member.includes(userID) && (
-                          <LogOut
-                            onClick={() => handleLeaveGroup(group)}
-                            className="w-5 h-5 text-red-500 cursor-pointer"
-                          />
-                        )} 
-                        <MessageSquare 
-                          className="w-5 h-5 cursor-pointer"
-                          onClick={() => chatGroup(group)}
-                         />
-                        <ChevronDown
-                          className="w-5 h-5 cursor-pointer"
-                          onClick={() => toggleGroup(group.name)}
-                        />
-                      </div>
-                    </div>
-                    {expandedGroup === group.name && (
-                      <div className="pl-10 pb-2 space-y-1">
-                        {group.member.map((member, idx) => (
-                          <div key={idx} className="text-sm text-gray-700">
-                            • {users.find(user => user._id === String(member))?.name || member.toString()}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+
+                {groupChats.map((group, idx) => (
+                  group.type==="group" ? 
+                    <GroupList
+                    group={group}
+                    userID={userID}
+                    key_index={idx}
+                    expandedGroup={expandedGroup}
+                    handleLeaveGroup={handleLeaveGroup}
+                    chatGroup={chatGroup}
+                    toggleGroup={toggleGroup} 
+                    users={users}                  
+                  />
+                  :<div key={idx}></div>    
                 ))}
               </div>
             </div>
@@ -356,6 +348,7 @@ export default function MainPage() {
               <h2 className="text-xl font-bold mb-2">User</h2>
               <div className="space-y-2">
                 {users.map((user, idx) => (
+                  user._id === userID ? <div key={idx}></div> :
                   <div
                   key={idx}
                   onClick={() => chatUser(user._id)}
@@ -378,7 +371,8 @@ export default function MainPage() {
           </div>
           <div className="sm:col-span-3 lg:col-span-3  overflow-y-auto bg-white p-0 rounded shadow w-full h-full">
             <ChatPanel
-              groupChat={selectedGroupChat}
+              groupChat={selectedGroupChat || null}
+              users={users}
             />
           </div>
         </div>
