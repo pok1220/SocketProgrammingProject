@@ -15,6 +15,7 @@ import createGroupChat from "@/libs/createGroupChat";
 import getGroupChats from "@/libs/getGroupChats";
 import PrivateMenu from "../components/PrivateChat";
 import getUsers from "@/libs/getUsers";
+import { ChevronDown, LogOut, MessageSquare } from "lucide-react";
 
 export default function MainPage() {
   const [groupChats, setGroupChats] = useState<GroupChat[]>([]);//Handler Group From Other
@@ -25,6 +26,13 @@ export default function MainPage() {
   const [name, setName] = useState("");
   const [open, setOpen] = useState(false);
   const socket = useSocket();
+  const [expandedGroup, setExpandedGroup] = useState("");
+  const [selectedChat, setSelectedChat] = useState("");
+  const [isGroupChat, setIsGroupChat] = useState(false);
+
+  const toggleGroup = (group: string) => {
+    setExpandedGroup(group);
+  };
 
   useEffect(() => {
     const fetchGroupChats = async () => { //Handler Group From Other
@@ -73,8 +81,6 @@ export default function MainPage() {
       socket?.off("user_status",onStatus);//Handler Display User Status
     };
   }, [session,socket]);
-
-
   
   async function onCreateGroup(name: string) {
     const group: GroupChat = {
@@ -98,22 +104,140 @@ export default function MainPage() {
     setGroupChats((previous) => [...previous, group]);
   }
 
-
   const handleCreate = () => {
     onCreateGroup(name);   
     setOpen(false);        
     setName("");           
   };
 
+  const chatUser = (userId : string) => {
+    setSelectedChat(userId);
+  };
+
+  function chatGroup(groupId: string): void {
+    setSelectedChat(groupId);
+    setIsGroupChat(true);
+  }
+
+  function leaveGroup(name: string): void {
+    setGroupChats((prevGroup) => prevGroup.filter((group) => group.name !== name));
+    socket?.emit("leave_group", name, () => {
+      console.log("Leave Group Emit Client");
+    });
+    // setExpandedGroup("");
+    // setSelectedChat("");
+    // setIsGroupChat(false);
+  }
+
   return (
     <div className="flex bg-blue-200 justify-center min-h-screen w-full h-full mx-0">
       <div className="flex flex-col w-[100%] my-12 px-2">
         <div className="grid sm:grid-cols-3 lg:grid-cols-5 w-full h-[500px] mt-5 gap-x-3 gap-y-10">
           <div className="sm:col-span-3 lg:col-span-2 bg-white p-4 rounded shadow w-full h-full">
-          
+            {/* Group Section */}
+            <Dialog open={open} onOpenChange={setOpen}>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Create Group</DialogTitle>
+                  <DialogDescription>
+                    Make a group you want to join here.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="name" className="text-right">
+                      Group Name
+                    </Label>
+                    <Textarea
+                      id="name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="col-span-3"
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button type="button" className="text-black border-2 border-black" onClick={() => {handleCreate()}}>
+                    Create Group
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+            <div className="mb-6">
+              <div className="flex justify-between items-center mb-2">
+                <h2 className="text-xl font-bold">Group</h2>
+                <button 
+                  className="text-xl font-bold"
+                  onClick={() => setOpen(true)}
+                >+</button>
+              </div>
+              <div className="space-y-2">
+                {groupChats.map((group, i) => (
+                  <div key={i} className="bg-gray-200 rounded">
+                    <div className="flex justify-between items-center px-4 py-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl">👥</span>
+                        <span>{group.name} ({group.member.length})</span>
+                      </div>
+                      <div className="flex gap-2">
+                        {/* 👇 Leave Group button shows only if user is in group
+                        {group.member.includes(userID) && (
+                          <LogOut
+                            onClick={() => leaveGroup(group.name)}
+                            className="w-5 h-5 text-red-500 cursor-pointer"
+                          />
+                        )} */}
+                        <MessageSquare 
+                          className="w-5 h-5 cursor-pointer"
+                          onClick={() => chatGroup(group.name)}
+                         />
+                        <ChevronDown
+                          className="w-5 h-5 cursor-pointer"
+                          onClick={() => toggleGroup(group.name)}
+                        />
+                      </div>
+                    </div>
+                    {expandedGroup === group.name && (
+                      <div className="pl-10 pb-2 space-y-1">
+                        {group.member.map((member, idx) => (
+                          <div key={idx} className="text-sm text-gray-700">
+                            • {users.find(user => user._id === member)?.name || member}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* User Section */}
+            <div>
+              <h2 className="text-xl font-bold mb-2">User</h2>
+              <div className="space-y-2">
+                {users.map((user, idx) => (
+                  <div
+                  key={idx}
+                  onClick={() => chatUser(user._id)}
+                  className="flex items-center gap-2 bg-gray-200 px-4 py-2 rounded cursor-pointer hover:bg-gray-300"
+                >
+                    <div
+                      className={`w-6 h-6 rounded-full border-2 ${
+                        user.isOn
+                          ? "border-green-500"
+                          : "border-black"
+                      } flex items-center justify-center`}
+                    >
+                      <div className="w-3 h-3 bg-black rounded-full"></div>
+                    </div>
+                    <span>{user.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
           <div className="sm:col-span-3 lg:col-span-3 bg-white p-4 rounded shadow w-full h-full">
-          
+            
           </div>
         </div>
       </div>
