@@ -131,10 +131,10 @@ export default function MainPage() {
   }
 
   return (
-    <div className="flex bg-blue-200 justify-center min-h-screen w-full h-full mx-0">
-      <div className="flex flex-col w-[100%] my-12 px-2">
-        <div className="grid sm:grid-cols-3 lg:grid-cols-5 w-full h-[500px] mt-5 gap-x-3 gap-y-10">
-          <div className="sm:col-span-3 lg:col-span-2 bg-white p-4 rounded shadow w-full h-full">
+    <main className="flex bg-blue-200 justify-center min-h-screen w-full h-full mx-0">
+    <div className="flex flex-col w-[100%] h-[100%] my-12 px-2 m-auto">
+      <div className="grid sm:grid-cols-3 lg:grid-cols-5 w-full h-[620px] mt-5 gap-x-3 gap-y-10">
+        <div className="sm:col-span-3 lg:col-span-2  overflow-y-auto bg-white p-4 rounded shadow w-full h-full">
             {/* Group Section */}
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogContent className="sm:max-w-[425px]">
@@ -237,8 +237,8 @@ export default function MainPage() {
               </div>
             </div>
           </div>
-          <div className="sm:col-span-3 lg:col-span-3 bg-white p-4 rounded shadow w-full h-full">
-            
+          <div className="sm:col-span-3 lg:col-span-3  overflow-y-auto bg-white p-0 rounded shadow w-full h-full">
+            <ChatPanel/>
           </div>
         </div>
       </div>
