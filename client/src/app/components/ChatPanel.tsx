@@ -86,7 +86,7 @@ const mockGroupChat: GroupChat = {
   
 
 
-export default function ChatPanel() {
+export default function ChatPanel({groupChat}:{groupChat?:GroupChat}) {
     const formSchema = z.object({
       text: z
         .string()
