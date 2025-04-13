@@ -35,6 +35,81 @@ export default function MainPage() {
     setExpandedGroup(group);
   };
 
+  const mockGroupChat: GroupChat = {
+    _id: "groupchat12345",
+    name: "Work Meeting Group",
+    type: "group",
+    createdAt: "15 April 2025, 9:00 AM",
+    member: [
+      {
+        _id: "1234567890abcdef12345678",
+        name: "Alice",
+        isOn: true,
+      },
+      {
+        _id: "67f7f7ea563d46de1caf5321",
+        name: "You",
+        isOn: true,
+      },
+    ],
+    message: [
+      {
+        text: "Hey, are you coming to the meeting later?",
+        sendBy: {
+          name: "Alice",
+          isOn: true,
+          _id: "1234567890abcdef12345678",
+        },
+        createdAt: "17 April 2568, 10:15 AM",
+      },
+      {
+        text: "Yes, I'll be there in 10 minutes.",
+        sendBy: {
+          name: "You",
+          isOn: true,
+          _id: "67f7f7ea563d46de1caf5321",
+        },
+        createdAt: "17 April 2568, 10:16 AM",
+      },
+      {
+        text: "Great! Don't forget to bring the documents.",
+        sendBy: {
+          name: "Alice",
+          isOn: true,
+          _id: "1234567890abcdef12345678",
+        },
+        createdAt: "7 April 2025, 10:17 AM",
+      },
+      {
+        text: "Already packed. See you soon! Already packed. See you soon! Already packed. See you soon!",
+        sendBy: {
+          name: "You",
+          isOn: true,
+          _id: "67f7f7ea563d46de1caf5321",
+        },
+        createdAt: "7 April 2025, 10:18 AM",
+      },
+      {
+        text: "Already packed. See you soon!",
+        sendBy: {
+          name: "You",
+          isOn: true,
+          _id: "67f7f7ea563d46de1caf5321",
+        },
+        createdAt: "17 April 2025, 10:18 AM",
+      },
+      {
+        text: "Already packed. See you soon!",
+        sendBy: {
+          name: "You",
+          isOn: true,
+          _id: "67f7f7ea563d46de1caf5321",
+        },
+        createdAt: "13 April 2025, 10:18 AM",
+      },
+    ],
+  };
+
   useEffect(() => {
     const fetchGroupChats = async () => { //Handler Group From Other
         try {
@@ -238,7 +313,7 @@ export default function MainPage() {
             </div>
           </div>
           <div className="sm:col-span-3 lg:col-span-3  overflow-y-auto bg-white p-0 rounded shadow w-full h-full">
-            <ChatPanel/>
+            <ChatPanel groupChat={mockGroupChat}/>
           </div>
         </div>
       </div>
