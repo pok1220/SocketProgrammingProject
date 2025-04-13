@@ -28,8 +28,7 @@ export default function MainPage() {
   const [open, setOpen] = useState(false);
   const socket = useSocket();
   const [expandedGroup, setExpandedGroup] = useState("");
-  const [selectedChat, setSelectedChat] = useState("");
-  const [isGroupChat, setIsGroupChat] = useState(false);
+  const [selectedGroupChat, setSelectedGroupChat] = useState<GroupChat>();
 
   const toggleGroup = (group: string) => {
     setExpandedGroup(group);
@@ -187,19 +186,19 @@ export default function MainPage() {
   };
 
   const chatUser = (userId : string) => {
-    setSelectedChat(userId);
+
   };
 
-  function chatGroup(groupId: string): void {
-    setSelectedChat(groupId);
-    setIsGroupChat(true);
+  function chatGroup(group: GroupChat): void {
+    setSelectedGroupChat(group);
+    console.log("Group Chat",group)
   }
 
   function leaveGroup(name: string): void {
-    setGroupChats((prevGroup) => prevGroup.filter((group) => group.name !== name));
-    socket?.emit("leave_group", name, () => {
-      console.log("Leave Group Emit Client");
-    });
+    // setGroupChats((prevGroup) => prevGroup.filter((group) => group.name !== name));
+    // socket?.emit("leave_group", name, () => {
+    //   console.log("Leave Group Emit Client");
+    // });
     // setExpandedGroup("");
     // setSelectedChat("");
     // setIsGroupChat(false);
@@ -265,7 +264,7 @@ export default function MainPage() {
                         )} */}
                         <MessageSquare 
                           className="w-5 h-5 cursor-pointer"
-                          onClick={() => chatGroup(group.name)}
+                          onClick={() => chatGroup(group)}
                          />
                         <ChevronDown
                           className="w-5 h-5 cursor-pointer"
@@ -277,7 +276,7 @@ export default function MainPage() {
                       <div className="pl-10 pb-2 space-y-1">
                         {group.member.map((member, idx) => (
                           <div key={idx} className="text-sm text-gray-700">
-                            • {users.find(user => user._id === member)?.name || member}
+                            • {users.find(user => user._id === String(member))?.name || member.toString()}
                           </div>
                         ))}
                       </div>
@@ -313,7 +312,9 @@ export default function MainPage() {
             </div>
           </div>
           <div className="sm:col-span-3 lg:col-span-3  overflow-y-auto bg-white p-0 rounded shadow w-full h-full">
-            <ChatPanel groupChat={mockGroupChat}/>
+            <ChatPanel
+              groupChat={selectedGroupChat}
+            />
           </div>
         </div>
       </div>
