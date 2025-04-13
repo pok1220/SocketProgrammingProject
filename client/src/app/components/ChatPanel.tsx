@@ -1,10 +1,10 @@
 "use client";
 import { ExitIcon, PaperPlaneIcon } from "@radix-ui/react-icons";
 import MessageBox from "./MessageBox";
-import { GroupChat, Message, User } from "../../../interface";
+import { GroupChat, Message, MessageRequest, User } from "../../../interface";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Form, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
 import { Textarea } from "./ui/textarea";
 import { FormProvider } from "react-hook-form";
@@ -12,6 +12,10 @@ import { Input } from "./ui/input";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "./ui/alert";
 import Button from "./ButtonLogin";
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import SendMessage from "@/libs/sendMessage";
+import sendMessage from "@/libs/sendMessage";
+import { useSocket } from "@/providers/SocketProvider";
 
   
 export default function ChatPanel({
@@ -28,7 +32,7 @@ export default function ChatPanel({
       </div>
     );
   }
-
+  // console.log(groupChat)
     const formSchema = z.object({
       text: z
         .string()
@@ -42,17 +46,57 @@ export default function ChatPanel({
         text: "",
       },
     });
+    
+    function onReceiveMessage(messsage: Message) { // Handler Message from Other
+      console.log("Hello Message from other")
+        setAllMessage((previous) => [...previous, messsage]);
+      }
   
     async function onSubmit(values: z.infer<typeof formSchema>) {
-       if(values.text.length)
       console.log("Form submitted:", values.text);
+      const userData:User={
+        _id:myUserID,
+        isOn:true,
+        name:session?.user.name??""
+      }
+      const messageData:MessageRequest={
+        sendBy:myUserID,
+        text:values.text,
+        // createdAt:new Date().toDateString()
+      }
+      console.log(messageData)
+
+      //Eject API Put
+      const res= await sendMessage(token,groupChat?._id??"",messageData)
+      if(!res){
+          console.log("error")
+      }
+      const myMessageData:Message={
+        roomID:groupChat?._id,
+        sendBy:userData,
+        text:values.text,
+        createdAt:new Date().toString()
+      }
+      // console.log("MESSAGE",myMessageData)
+      //Emit Data
+      socket?.timeout(500).emit("create-something", myMessageData, () => {
+          console.log("Create Group Emit Client");
+      });
+
+      //setAllMessage
+      setAllMessage((previous) => [...previous, myMessageData])
+      form.reset();
     }
-    
+    const socket = useSocket();
     const [allMessage,setAllMessage] = useState<Message[]>([])
     useEffect(() => {
         setAllMessage(groupChat?.message || []);
+        socket?.on("receive_message",onReceiveMessage)
       }, [groupChat?.message]);
 
+    const { data: session } = useSession();
+    const token=session?.user.token??""
+    const myUserID=session?.user.id??""
     return (
  
       <FormProvider {...form}>
@@ -62,7 +106,11 @@ export default function ChatPanel({
               <h1 className="text-3xl m-auto">{groupChat.name} ({groupChat.member.length})</h1>
             :
             <h1 className="text-3xl m-auto">
-              {users.find(user => user._id === groupChat.name)?.name || "Unknown User"}
+             {(() => {
+                const otherUserId = groupChat.member.find(id => id !== myUserID);
+                const otherUser = users.find(user => user._id === otherUserId);
+                return otherUser?.name || "Unknown User";
+              })()}
             </h1>
             }
             

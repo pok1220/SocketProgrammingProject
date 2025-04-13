@@ -13,7 +13,7 @@ const {protect,authorize} = require('../middleware/auth')
 router.route('/').get(getGroupChats).post(protect,postGroupChat) //protect ก่อนแล้ว authorize ตามต้องใส่ตามลำดับด้วย
 router.route('/:id').get(getGroupChat).put(protect,putGroupChat).delete(protect,deleteGroupChat)
 router.route('/join/:roomid').put(joinGroupChat);
-router.route('/message/:roomid').put(messageGroupChat);
+router.route('/message/:roomid').put(protect,messageGroupChat);
 router.route('/leave/:roomid').put(leaveGroupChat);
 module.exports=router; //ให้ server.js เรียกใช้
 

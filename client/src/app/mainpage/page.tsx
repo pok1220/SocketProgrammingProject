@@ -42,81 +42,6 @@ export default function MainPage() {
     
   };
 
-  // const mockGroupChat: GroupChat = {
-  //   _id: "groupchat12345",
-  //   name: "Work Meeting Group",
-  //   type: "group",
-  //   createdAt: "15 April 2025, 9:00 AM",
-  //   member: [
-  //     {
-  //       _id: "1234567890abcdef12345678",
-  //       name: "Alice",
-  //       isOn: true,
-  //     },
-  //     {
-  //       _id: "67f7f7ea563d46de1caf5321",
-  //       name: "You",
-  //       isOn: true,
-  //     },
-  //   ],
-  //   message: [
-  //     {
-  //       text: "Hey, are you coming to the meeting later?",
-  //       sendBy: {
-  //         name: "Alice",
-  //         isOn: true,
-  //         _id: "1234567890abcdef12345678",
-  //       },
-  //       createdAt: "17 April 2568, 10:15 AM",
-  //     },
-  //     {
-  //       text: "Yes, I'll be there in 10 minutes.",
-  //       sendBy: {
-  //         name: "You",
-  //         isOn: true,
-  //         _id: "67f7f7ea563d46de1caf5321",
-  //       },
-  //       createdAt: "17 April 2568, 10:16 AM",
-  //     },
-  //     {
-  //       text: "Great! Don't forget to bring the documents.",
-  //       sendBy: {
-  //         name: "Alice",
-  //         isOn: true,
-  //         _id: "1234567890abcdef12345678",
-  //       },
-  //       createdAt: "7 April 2025, 10:17 AM",
-  //     },
-  //     {
-  //       text: "Already packed. See you soon! Already packed. See you soon! Already packed. See you soon!",
-  //       sendBy: {
-  //         name: "You",
-  //         isOn: true,
-  //         _id: "67f7f7ea563d46de1caf5321",
-  //       },
-  //       createdAt: "7 April 2025, 10:18 AM",
-  //     },
-  //     {
-  //       text: "Already packed. See you soon!",
-  //       sendBy: {
-  //         name: "You",
-  //         isOn: true,
-  //         _id: "67f7f7ea563d46de1caf5321",
-  //       },
-  //       createdAt: "17 April 2025, 10:18 AM",
-  //     },
-  //     {
-  //       text: "Already packed. See you soon!",
-  //       sendBy: {
-  //         name: "You",
-  //         isOn: true,
-  //         _id: "67f7f7ea563d46de1caf5321",
-  //       },
-  //       createdAt: "13 April 2025, 10:18 AM",
-  //     },
-  //   ],
-  // };
-
   useEffect(() => {
     const fetchGroupChats = async () => { //Handler Group From Other
         try {
@@ -131,6 +56,7 @@ export default function MainPage() {
       try {
         const response = await getUsers();
         setUsers(response);
+        // console.log("ALL USER",response)
       } catch (error) {
         console.error("Error fetching group chats:", error);
       }
@@ -205,9 +131,9 @@ export default function MainPage() {
     }
     //group._id=res.data._id
     // Emit Group that Joining
-    socket?.timeout(5000).emit("join_room", group, () => {
-      console.log("Join Group Emit Client");
-    });
+    // socket?.timeout(500).emit("join_room", group._id, () => {
+    //   console.log("Join Group Emit Client");
+    // });
 
     return group;
   }
@@ -228,7 +154,7 @@ export default function MainPage() {
     }
     //group._id=res.data._id
     // Emit Group that Leaving
-    socket?.timeout(5000).emit("leave_room", group, () => {
+    socket?.timeout(5000).emit("leave_room", group._id, () => {
       console.log("Leave Group Emit Client");
     });
 
@@ -248,7 +174,7 @@ export default function MainPage() {
 
   const chatUser = async (userId : string) => {
     const sender = userID;
-    let group = groupChats.find((group) => (group.member.includes(userId) && group.member.includes(sender)));
+    let group = groupChats.find((group) => (group.type === "private" && group.member.includes(userId) && group.member.includes(sender)));
     if (group) {
       setSelectedGroupChat(group);
     }
@@ -265,7 +191,10 @@ export default function MainPage() {
         group = updatedGroup;
       }
     }
-
+    // console.log("THIS GROUP",group)
+    socket?.timeout(500).emit("join_room", group._id, () => {
+      console.log("Join Group Emit Client");
+    });
     setSelectedGroupChat(group);
   }
 
@@ -329,6 +258,7 @@ export default function MainPage() {
                 {groupChats.map((group, idx) => (
                   group.type==="group" ? 
                     <GroupList
+                    key={group._id}
                     group={group}
                     userID={userID}
                     key_index={idx}
@@ -348,7 +278,7 @@ export default function MainPage() {
               <h2 className="text-xl font-bold mb-2">User</h2>
               <div className="space-y-2">
                 {users.map((user, idx) => (
-                  user._id === userID ? <div key={idx}></div> :
+                  user._id === userID ? "" :
                   <div
                   key={idx}
                   onClick={() => chatUser(user._id)}

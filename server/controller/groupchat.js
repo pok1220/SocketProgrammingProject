@@ -14,7 +14,7 @@ exports.getGroupChats = async (req, res, next) => {
     let queryStr = JSON.stringify(reqQuery);
     queryStr = queryStr.replace(/\b(gt|gte|lt|lte|e)\b/g, match => `$${match}`);
 
-    query = GroupChat.find(JSON.parse(queryStr));
+    query = GroupChat.find(JSON.parse(queryStr)).populate('message.sendBy', 'name email picture');
 
     // Field selection
     if (req.query.select) {
@@ -65,7 +65,8 @@ exports.getGroupChats = async (req, res, next) => {
 // @access Public
 exports.getGroupChat = async (req, res, next) => {
   try {
-    const groupChat = await GroupChat.findById(req.params.id);
+    const groupChat = await GroupChat.findById(req.params.id).populate('message.sendBy', 'name email picture');
+    ;
     if (!groupChat) {
       return res.status(400).json({ success: false });
     }

@@ -2,9 +2,9 @@ import axios from "axios";
 import { GroupChat } from "../../interface";
 
 export default async function createGroupChat(data: GroupChat, token: string) {
-  console.log(data)
+//   console.log(data)
     const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/groupChat`;
-    console.log(apiUrl)
+    // console.log(apiUrl)
     try {
         const response = await axios.post(apiUrl, data, {
             withCredentials: true,

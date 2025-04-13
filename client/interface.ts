@@ -8,9 +8,16 @@ export interface GroupChat{
 }
 
 export interface Message{
+    roomID?:string,
     text:string,
     sendBy:User,
-    createdAt:string,
+    createdAt?:string,
+}
+
+export interface MessageRequest{
+    text:string,
+    sendBy:string,
+    createdAt?:string,
 }
 
 export interface User{

@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export default async function putUserStatus(status:boolean,token:string,userID:string) {
-    console.log("token",token,status)
+    // console.log("token",token,status)
     const data={isOn:status}
     const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/auth/changeStatus/${userID}`;
     console.log(apiUrl)

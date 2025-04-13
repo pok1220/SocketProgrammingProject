@@ -23,7 +23,7 @@ const corsOptions = {
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,  
 };
-
+// 
 app.use(cors(corsOptions));  
 app.use('/api/v1/auth',user)
 app.use('/api/v1/groupchat',groupChat)
@@ -110,6 +110,7 @@ io.on("connection",async (socket)=>{
             // await User.updateOne({
             //     _id: data.userId,
             // }, {$addToSet: {room: data.roomId}});
+            console.log("YOU NOW JOIN",data)
             socket.join(data); //data is roomId(mongoObjid of room)
         }catch(err){
             console.log(err);
@@ -122,8 +123,8 @@ io.on("connection",async (socket)=>{
             //     _id: data.room,               
             // },{ $addToSet: {message: data}});
             //data is room id
-            socket.to(data).emit("receive_message",data)
-            console.log("check",data);
+            console.log("check",data.roomID);
+            socket.to(data.roomID).emit("receive_message",data)
         }catch(err){
             console.log(err);
         }
