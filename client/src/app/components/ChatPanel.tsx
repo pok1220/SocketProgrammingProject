@@ -8,90 +8,16 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/f
 import { Textarea } from "./ui/textarea";
 import { FormProvider } from "react-hook-form";
 import { Input } from "./ui/input";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "./ui/alert";
+import Button from "./ButtonLogin";
+import { useEffect, useState } from "react";
 
-const mockGroupChat: GroupChat = {
-    _id: "groupchat12345",
-    name: "Work Meeting Group",
-    type: "group",
-    createdAt: "15 April 2025, 9:00 AM",
-    member: [
-      {
-        _id: "1234567890abcdef12345678",
-        name: "Alice",
-        isOn: true,
-      },
-      {
-        _id: "67f7f7ea563d46de1caf5321",
-        name: "You",
-        isOn: true,
-      },
-    ],
-    message: [
-      {
-        text: "Hey, are you coming to the meeting later?",
-        sendBy: {
-          name: "Alice",
-          isOn: true,
-          _id: "1234567890abcdef12345678",
-        },
-        createdAt: "17 April 2568, 10:15 AM",
-      },
-      {
-        text: "Yes, I'll be there in 10 minutes.",
-        sendBy: {
-          name: "You",
-          isOn: true,
-          _id: "67f7f7ea563d46de1caf5321",
-        },
-        createdAt: "17 April 2568, 10:16 AM",
-      },
-      {
-        text: "Great! Don't forget to bring the documents.",
-        sendBy: {
-          name: "Alice",
-          isOn: true,
-          _id: "1234567890abcdef12345678",
-        },
-        createdAt: "7 April 2025, 10:17 AM",
-      },
-      {
-        text: "Already packed. See you soon! Already packed. See you soon! Already packed. See you soon!",
-        sendBy: {
-          name: "You",
-          isOn: true,
-          _id: "67f7f7ea563d46de1caf5321",
-        },
-        createdAt: "7 April 2025, 10:18 AM",
-      },
-      {
-        text: "Already packed. See you soon!",
-        sendBy: {
-          name: "You",
-          isOn: true,
-          _id: "67f7f7ea563d46de1caf5321",
-        },
-        createdAt: "17 April 2025, 10:18 AM",
-      },
-      {
-        text: "Already packed. See you soon!",
-        sendBy: {
-          name: "You",
-          isOn: true,
-          _id: "67f7f7ea563d46de1caf5321",
-        },
-        createdAt: "13 April 2025, 10:18 AM",
-      },
-    ],
-  };
   
-
-
-export default function ChatPanel({groupChat}:{groupChat?:GroupChat}) {
+export default function ChatPanel({groupChat}:{groupChat:GroupChat}) {
     const formSchema = z.object({
       text: z
         .string()
         .trim()
-        // .min(1, { message: "Description must be at least 1 character." })
         .max(1000, { message: "Description must not exceed 1000 characters." }),
     });
   
@@ -106,16 +32,48 @@ export default function ChatPanel({groupChat}:{groupChat?:GroupChat}) {
        if(values.text.length)
       console.log("Form submitted:", values.text);
     }
-  
+    
+    const [allMessage,setAllMessage] = useState<Message[]>([])
+    useEffect(() => {
+        setAllMessage(groupChat?.message || []);
+      }, [groupChat?.message]);
+
     return (
       <FormProvider {...form}>
         <div className="flex flex-col w-full h-full">
           <div className="w-full h-[20%] flex items-center bg-gray-500 text-white font-bold rounded-sm px-6">
-            <h1 className="text-3xl m-auto">{mockGroupChat.name} ({mockGroupChat.member.length})</h1>
-            {mockGroupChat.type=="group"&&<ExitIcon className="w-5 h-5 hover:text-red-500 cursor-pointer" />}
+            <h1 className="text-3xl m-auto">{groupChat.name} ({groupChat.member.length})</h1>
+            {groupChat.type=="group"&&
+            
+            <AlertDialog>
+                <AlertDialogTrigger><ExitIcon className="w-5 h-5 hover:text-red-500 cursor-pointer" /></AlertDialogTrigger>
+                            <AlertDialogContent className="max-w-lg rounded-md">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="text-xl font-semibold mb-2">
+                        Are you sure to leave this group chat?
+                        </AlertDialogTitle>
+                        <AlertDialogDescription asChild className="text-red">
+                            Your message will be delete permanently.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter className="mt-4 flex justify-end gap-2">
+                        <AlertDialogCancel className="bg-gray-200 hover:bg-gray-300 text-black">
+                        cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                        asChild
+                        >
+                        <Button>
+                            confirm
+                        </Button>
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>}
           </div>
           <div className="w-full h-[70%] bg-amber-200 overflow-y-auto px-2 py-2">
-            {mockGroupChat.message.map((message, index) => (
+            {allMessage.map((message, index) => (
               <MessageBox key={index} message={message} />
             ))}
           </div>
@@ -151,9 +109,11 @@ export default function ChatPanel({groupChat}:{groupChat?:GroupChat}) {
                     disabled={form.watch("text")?.trim().length <= 0}
                 >
                     <PaperPlaneIcon
-                        className={`w-5 h-5 hover:cursor-pointer ${
-                            form.watch("text").length > 0 ? "hover:text-green-500" : "text-gray-500"
-                        }`}
+                    className={`w-5 h-5 ${
+                        form.watch("text")?.trim().length > 0
+                        ? "hover:cursor-pointer hover:text-green-500"
+                        : "text-gray-500 cursor-not-allowed"
+                    }`}
                     />
                 </button>
                 </div>
