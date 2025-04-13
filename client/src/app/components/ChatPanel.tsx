@@ -1,3 +1,4 @@
+"use client";
 import { ExitIcon, PaperPlaneIcon } from "@radix-ui/react-icons";
 import MessageBox from "./MessageBox";
 import { GroupChat, Message } from "../../../interface";
@@ -14,6 +15,14 @@ import { useEffect, useState } from "react";
 
   
 export default function ChatPanel({groupChat}:{groupChat:GroupChat}) {
+  if (!groupChat) {
+    return (
+      <div className="flex items-center justify-center w-full h-full text-gray-500">
+        Select Chat
+      </div>
+    );
+  }
+
     const formSchema = z.object({
       text: z
         .string()
@@ -39,6 +48,7 @@ export default function ChatPanel({groupChat}:{groupChat:GroupChat}) {
       }, [groupChat?.message]);
 
     return (
+ 
       <FormProvider {...form}>
         <div className="flex flex-col w-full h-full">
           <div className="w-full h-[20%] flex items-center bg-gray-500 text-white font-bold rounded-sm px-6">
@@ -46,7 +56,7 @@ export default function ChatPanel({groupChat}:{groupChat:GroupChat}) {
             {groupChat.type=="group"&&
             
             <AlertDialog>
-                <AlertDialogTrigger><ExitIcon className="w-5 h-5 hover:text-red-500 cursor-pointer" /></AlertDialogTrigger>
+                {/* <AlertDialogTrigger><ExitIcon className="w-5 h-5 hover:text-red-500 cursor-pointer" /></AlertDialogTrigger> */}
                             <AlertDialogContent className="max-w-lg rounded-md">
                     <AlertDialogHeader>
                         <AlertDialogTitle className="text-xl font-semibold mb-2">

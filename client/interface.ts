@@ -3,7 +3,7 @@ export interface GroupChat{
     name:string,
     type:string,
     createdAt?:string,
-    member:User[]
+    member:string[]
     message:Message[]
 }
 

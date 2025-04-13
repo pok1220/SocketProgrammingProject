@@ -17,6 +17,8 @@ import PrivateMenu from "../components/PrivateChat";
 import getUsers from "@/libs/getUsers";
 import { ChevronDown, LogOut, MessageSquare } from "lucide-react";
 import ChatPanel from "../components/ChatPanel";
+import joinGroupChat from "@/libs/joinGroupChat";
+import leaveGroupChat from "@/libs/leaveGroupChat";
 
 export default function MainPage() {
   const [groupChats, setGroupChats] = useState<GroupChat[]>([]);//Handler Group From Other
@@ -34,80 +36,80 @@ export default function MainPage() {
     setExpandedGroup(group);
   };
 
-  const mockGroupChat: GroupChat = {
-    _id: "groupchat12345",
-    name: "Work Meeting Group",
-    type: "group",
-    createdAt: "15 April 2025, 9:00 AM",
-    member: [
-      {
-        _id: "1234567890abcdef12345678",
-        name: "Alice",
-        isOn: true,
-      },
-      {
-        _id: "67f7f7ea563d46de1caf5321",
-        name: "You",
-        isOn: true,
-      },
-    ],
-    message: [
-      {
-        text: "Hey, are you coming to the meeting later?",
-        sendBy: {
-          name: "Alice",
-          isOn: true,
-          _id: "1234567890abcdef12345678",
-        },
-        createdAt: "17 April 2568, 10:15 AM",
-      },
-      {
-        text: "Yes, I'll be there in 10 minutes.",
-        sendBy: {
-          name: "You",
-          isOn: true,
-          _id: "67f7f7ea563d46de1caf5321",
-        },
-        createdAt: "17 April 2568, 10:16 AM",
-      },
-      {
-        text: "Great! Don't forget to bring the documents.",
-        sendBy: {
-          name: "Alice",
-          isOn: true,
-          _id: "1234567890abcdef12345678",
-        },
-        createdAt: "7 April 2025, 10:17 AM",
-      },
-      {
-        text: "Already packed. See you soon! Already packed. See you soon! Already packed. See you soon!",
-        sendBy: {
-          name: "You",
-          isOn: true,
-          _id: "67f7f7ea563d46de1caf5321",
-        },
-        createdAt: "7 April 2025, 10:18 AM",
-      },
-      {
-        text: "Already packed. See you soon!",
-        sendBy: {
-          name: "You",
-          isOn: true,
-          _id: "67f7f7ea563d46de1caf5321",
-        },
-        createdAt: "17 April 2025, 10:18 AM",
-      },
-      {
-        text: "Already packed. See you soon!",
-        sendBy: {
-          name: "You",
-          isOn: true,
-          _id: "67f7f7ea563d46de1caf5321",
-        },
-        createdAt: "13 April 2025, 10:18 AM",
-      },
-    ],
-  };
+  // const mockGroupChat: GroupChat = {
+  //   _id: "groupchat12345",
+  //   name: "Work Meeting Group",
+  //   type: "group",
+  //   createdAt: "15 April 2025, 9:00 AM",
+  //   member: [
+  //     {
+  //       _id: "1234567890abcdef12345678",
+  //       name: "Alice",
+  //       isOn: true,
+  //     },
+  //     {
+  //       _id: "67f7f7ea563d46de1caf5321",
+  //       name: "You",
+  //       isOn: true,
+  //     },
+  //   ],
+  //   message: [
+  //     {
+  //       text: "Hey, are you coming to the meeting later?",
+  //       sendBy: {
+  //         name: "Alice",
+  //         isOn: true,
+  //         _id: "1234567890abcdef12345678",
+  //       },
+  //       createdAt: "17 April 2568, 10:15 AM",
+  //     },
+  //     {
+  //       text: "Yes, I'll be there in 10 minutes.",
+  //       sendBy: {
+  //         name: "You",
+  //         isOn: true,
+  //         _id: "67f7f7ea563d46de1caf5321",
+  //       },
+  //       createdAt: "17 April 2568, 10:16 AM",
+  //     },
+  //     {
+  //       text: "Great! Don't forget to bring the documents.",
+  //       sendBy: {
+  //         name: "Alice",
+  //         isOn: true,
+  //         _id: "1234567890abcdef12345678",
+  //       },
+  //       createdAt: "7 April 2025, 10:17 AM",
+  //     },
+  //     {
+  //       text: "Already packed. See you soon! Already packed. See you soon! Already packed. See you soon!",
+  //       sendBy: {
+  //         name: "You",
+  //         isOn: true,
+  //         _id: "67f7f7ea563d46de1caf5321",
+  //       },
+  //       createdAt: "7 April 2025, 10:18 AM",
+  //     },
+  //     {
+  //       text: "Already packed. See you soon!",
+  //       sendBy: {
+  //         name: "You",
+  //         isOn: true,
+  //         _id: "67f7f7ea563d46de1caf5321",
+  //       },
+  //       createdAt: "17 April 2025, 10:18 AM",
+  //     },
+  //     {
+  //       text: "Already packed. See you soon!",
+  //       sendBy: {
+  //         name: "You",
+  //         isOn: true,
+  //         _id: "67f7f7ea563d46de1caf5321",
+  //       },
+  //       createdAt: "13 April 2025, 10:18 AM",
+  //     },
+  //   ],
+  // };
 
   useEffect(() => {
     const fetchGroupChats = async () => { //Handler Group From Other
@@ -176,7 +178,62 @@ export default function MainPage() {
     socket?.timeout(5000).emit("create_room", group, () => {
       console.log("Create Group Emit Client");
     });
+
     setGroupChats((previous) => [...previous, group]);
+  }
+
+  async function joinGroup(group: GroupChat, userID: string) {
+    if(group._id === null || group._id === undefined){
+      console.log("Group ID is null or undefined");
+      return;
+    }
+    
+    group.member.push(userID);
+    // Eject API
+    const res = await joinGroupChat(group._id, userID, session?.user.token ?? "");
+    console.log("JOIN GROUP",res)
+    if (!res) {
+      console.log("Error");
+      return;
+    }
+    //group._id=res.data._id
+    // Emit Group that Joining
+    socket?.timeout(5000).emit("join_room", group, () => {
+      console.log("Join Group Emit Client");
+    });
+
+    return group;
+  }
+
+  async function leaveGroup(group: GroupChat, userID: string) {
+    if(group._id === null || group._id === undefined){
+      console.log("Group ID is null or undefined");
+      return;
+    }
+
+    group.member = group.member.filter((member) => member !== userID);
+    // Eject API
+    const res = await leaveGroupChat(group._id, userID, session?.user.token ?? "");
+    console.log("LEAVE GROUP",res)
+    if (!res) {
+      console.log("Error");
+      return;
+    }
+    //group._id=res.data._id
+    // Emit Group that Leaving
+    socket?.timeout(5000).emit("leave_room", group, () => {
+      console.log("Leave Group Emit Client");
+    });
+
+    const newGroupChat : GroupChat[] = groupChats;
+    newGroupChat.forEach((g, index) => {
+      if (g._id === group._id) {
+        groupChats[index] = group;
+      }
+    });
+    setGroupChats(newGroupChat);
+    console.log("Group Chats", newGroupChat);
+    return group;
   }
 
   const handleCreate = () => {
@@ -189,19 +246,27 @@ export default function MainPage() {
 
   };
 
-  function chatGroup(group: GroupChat): void {
+  async function chatGroup(group: GroupChat): Promise<void> {
+    if (!group.member.includes(userID)) {
+      const updatedGroup = await joinGroup(group, userID);
+      if (updatedGroup) {
+        group = updatedGroup;
+      }
+    }
+
     setSelectedGroupChat(group);
-    console.log("Group Chat",group)
   }
 
-  function leaveGroup(name: string): void {
-    // setGroupChats((prevGroup) => prevGroup.filter((group) => group.name !== name));
-    // socket?.emit("leave_group", name, () => {
-    //   console.log("Leave Group Emit Client");
-    // });
-    // setExpandedGroup("");
-    // setSelectedChat("");
-    // setIsGroupChat(false);
+  async function handleLeaveGroup(group: GroupChat): Promise<void> {
+    
+    if (group.member.includes(userID)) {
+      const updatedGroup = await leaveGroup(group, userID);
+      if (updatedGroup) {
+        group = updatedGroup;
+      }
+    }
+    setSelectedGroupChat(undefined);
+
   }
 
   return (
@@ -255,13 +320,13 @@ export default function MainPage() {
                         <span>{group.name} ({group.member.length})</span>
                       </div>
                       <div className="flex gap-2">
-                        {/* 👇 Leave Group button shows only if user is in group
+                        {/* 👇 Leave Group button shows only if user is in group*/}
                         {group.member.includes(userID) && (
                           <LogOut
-                            onClick={() => leaveGroup(group.name)}
+                            onClick={() => handleLeaveGroup(group)}
                             className="w-5 h-5 text-red-500 cursor-pointer"
                           />
-                        )} */}
+                        )} 
                         <MessageSquare 
                           className="w-5 h-5 cursor-pointer"
                           onClick={() => chatGroup(group)}
