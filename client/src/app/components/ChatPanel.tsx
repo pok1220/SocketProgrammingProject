@@ -1,6 +1,7 @@
+"use client";
 import { ExitIcon, PaperPlaneIcon } from "@radix-ui/react-icons";
 import MessageBox from "./MessageBox";
-import { GroupChat, Message } from "../../../interface";
+import { GroupChat, Message, User } from "../../../interface";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, useForm } from "react-hook-form";
@@ -13,7 +14,21 @@ import Button from "./ButtonLogin";
 import { useEffect, useState } from "react";
 
   
-export default function ChatPanel({groupChat}:{groupChat:GroupChat}) {
+export default function ChatPanel({
+  groupChat,
+  users
+}:{
+  groupChat:GroupChat | null
+  users: User[]
+}) {
+  if (!groupChat) {
+    return (
+      <div className="flex items-center justify-center w-full h-full text-gray-500">
+        Select Chat
+      </div>
+    );
+  }
+
     const formSchema = z.object({
       text: z
         .string()
@@ -39,14 +54,22 @@ export default function ChatPanel({groupChat}:{groupChat:GroupChat}) {
       }, [groupChat?.message]);
 
     return (
+ 
       <FormProvider {...form}>
         <div className="flex flex-col w-full h-full">
           <div className="w-full h-[20%] flex items-center bg-gray-500 text-white font-bold rounded-sm px-6">
-            <h1 className="text-3xl m-auto">{groupChat.name} ({groupChat.member.length})</h1>
+            {groupChat.type=="group" ? 
+              <h1 className="text-3xl m-auto">{groupChat.name} ({groupChat.member.length})</h1>
+            :
+            <h1 className="text-3xl m-auto">
+              {users.find(user => user._id === groupChat.name)?.name || "Unknown User"}
+            </h1>
+            }
+            
             {groupChat.type=="group"&&
             
             <AlertDialog>
-                <AlertDialogTrigger><ExitIcon className="w-5 h-5 hover:text-red-500 cursor-pointer" /></AlertDialogTrigger>
+                {/* <AlertDialogTrigger><ExitIcon className="w-5 h-5 hover:text-red-500 cursor-pointer" /></AlertDialogTrigger> */}
                             <AlertDialogContent className="max-w-lg rounded-md">
                     <AlertDialogHeader>
                         <AlertDialogTitle className="text-xl font-semibold mb-2">

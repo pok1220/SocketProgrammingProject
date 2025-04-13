@@ -15,8 +15,11 @@ import createGroupChat from "@/libs/createGroupChat";
 import getGroupChats from "@/libs/getGroupChats";
 import PrivateMenu from "../components/PrivateChat";
 import getUsers from "@/libs/getUsers";
-import { ChevronDown, LogOut, MessageSquare } from "lucide-react";
+import { ChevronDown, ChevronUp, LogOut, MessageSquare } from "lucide-react";
 import ChatPanel from "../components/ChatPanel";
+import joinGroupChat from "@/libs/joinGroupChat";
+import leaveGroupChat from "@/libs/leaveGroupChat";
+import GroupList from "../components/GroupList";
 
 export default function MainPage() {
   const [groupChats, setGroupChats] = useState<GroupChat[]>([]);//Handler Group From Other
@@ -28,87 +31,91 @@ export default function MainPage() {
   const [open, setOpen] = useState(false);
   const socket = useSocket();
   const [expandedGroup, setExpandedGroup] = useState("");
-  const [selectedChat, setSelectedChat] = useState("");
-  const [isGroupChat, setIsGroupChat] = useState(false);
+  const [selectedGroupChat, setSelectedGroupChat] = useState<GroupChat>();
 
   const toggleGroup = (group: string) => {
-    setExpandedGroup(group);
+    if(expandedGroup === group) {
+      setExpandedGroup("");
+    }else{
+      setExpandedGroup(group);
+    }
+    
   };
 
-  const mockGroupChat: GroupChat = {
-    _id: "groupchat12345",
-    name: "Work Meeting Group",
-    type: "group",
-    createdAt: "15 April 2025, 9:00 AM",
-    member: [
-      {
-        _id: "1234567890abcdef12345678",
-        name: "Alice",
-        isOn: true,
-      },
-      {
-        _id: "67f7f7ea563d46de1caf5321",
-        name: "You",
-        isOn: true,
-      },
-    ],
-    message: [
-      {
-        text: "Hey, are you coming to the meeting later?",
-        sendBy: {
-          name: "Alice",
-          isOn: true,
-          _id: "1234567890abcdef12345678",
-        },
-        createdAt: "17 April 2568, 10:15 AM",
-      },
-      {
-        text: "Yes, I'll be there in 10 minutes.",
-        sendBy: {
-          name: "You",
-          isOn: true,
-          _id: "67f7f7ea563d46de1caf5321",
-        },
-        createdAt: "17 April 2568, 10:16 AM",
-      },
-      {
-        text: "Great! Don't forget to bring the documents.",
-        sendBy: {
-          name: "Alice",
-          isOn: true,
-          _id: "1234567890abcdef12345678",
-        },
-        createdAt: "7 April 2025, 10:17 AM",
-      },
-      {
-        text: "Already packed. See you soon! Already packed. See you soon! Already packed. See you soon!",
-        sendBy: {
-          name: "You",
-          isOn: true,
-          _id: "67f7f7ea563d46de1caf5321",
-        },
-        createdAt: "7 April 2025, 10:18 AM",
-      },
-      {
-        text: "Already packed. See you soon!",
-        sendBy: {
-          name: "You",
-          isOn: true,
-          _id: "67f7f7ea563d46de1caf5321",
-        },
-        createdAt: "17 April 2025, 10:18 AM",
-      },
-      {
-        text: "Already packed. See you soon!",
-        sendBy: {
-          name: "You",
-          isOn: true,
-          _id: "67f7f7ea563d46de1caf5321",
-        },
-        createdAt: "13 April 2025, 10:18 AM",
-      },
-    ],
-  };
+  // const mockGroupChat: GroupChat = {
+  //   _id: "groupchat12345",
+  //   name: "Work Meeting Group",
+  //   type: "group",
+  //   createdAt: "15 April 2025, 9:00 AM",
+  //   member: [
+  //     {
+  //       _id: "1234567890abcdef12345678",
+  //       name: "Alice",
+  //       isOn: true,
+  //     },
+  //     {
+  //       _id: "67f7f7ea563d46de1caf5321",
+  //       name: "You",
+  //       isOn: true,
+  //     },
+  //   ],
+  //   message: [
+  //     {
+  //       text: "Hey, are you coming to the meeting later?",
+  //       sendBy: {
+  //         name: "Alice",
+  //         isOn: true,
+  //         _id: "1234567890abcdef12345678",
+  //       },
+  //       createdAt: "17 April 2568, 10:15 AM",
+  //     },
+  //     {
+  //       text: "Yes, I'll be there in 10 minutes.",
+  //       sendBy: {
+  //         name: "You",
+  //         isOn: true,
+  //         _id: "67f7f7ea563d46de1caf5321",
+  //       },
+  //       createdAt: "17 April 2568, 10:16 AM",
+  //     },
+  //     {
+  //       text: "Great! Don't forget to bring the documents.",
+  //       sendBy: {
+  //         name: "Alice",
+  //         isOn: true,
+  //         _id: "1234567890abcdef12345678",
+  //       },
+  //       createdAt: "7 April 2025, 10:17 AM",
+  //     },
+  //     {
+  //       text: "Already packed. See you soon! Already packed. See you soon! Already packed. See you soon!",
+  //       sendBy: {
+  //         name: "You",
+  //         isOn: true,
+  //         _id: "67f7f7ea563d46de1caf5321",
+  //       },
+  //       createdAt: "7 April 2025, 10:18 AM",
+  //     },
+  //     {
+  //       text: "Already packed. See you soon!",
+  //       sendBy: {
+  //         name: "You",
+  //         isOn: true,
+  //         _id: "67f7f7ea563d46de1caf5321",
+  //       },
+  //       createdAt: "17 April 2025, 10:18 AM",
+  //     },
+  //     {
+  //       text: "Already packed. See you soon!",
+  //       sendBy: {
+  //         name: "You",
+  //         isOn: true,
+  //         _id: "67f7f7ea563d46de1caf5321",
+  //       },
+  //       createdAt: "13 April 2025, 10:18 AM",
+  //     },
+  //   ],
+  // };
 
   useEffect(() => {
     const fetchGroupChats = async () => { //Handler Group From Other
@@ -158,12 +165,12 @@ export default function MainPage() {
     };
   }, [session,socket]);
   
-  async function onCreateGroup(name: string) {
+  async function onCreateGroup(name: string, type: string, member: string[]) {
     const group: GroupChat = {
       message: [],
       name: name,
-      member:[userID],
-      type: "group",
+      member: member,
+      type: type,
     };
     // Eject API
     const res:CreateGroupResponse = await createGroupChat(group, session?.user.token ?? "");
@@ -177,32 +184,102 @@ export default function MainPage() {
     socket?.timeout(5000).emit("create_room", group, () => {
       console.log("Create Group Emit Client");
     });
+
     setGroupChats((previous) => [...previous, group]);
+    return group;
+  }
+
+  async function joinGroup(group: GroupChat, userID: string) {
+    if(group._id === null || group._id === undefined){
+      console.log("Group ID is null or undefined");
+      return;
+    }
+    
+    group.member.push(userID);
+    // Eject API
+    const res = await joinGroupChat(group._id, userID, session?.user.token ?? "");
+    console.log("JOIN GROUP",res)
+    if (!res) {
+      console.log("Error");
+      return;
+    }
+    //group._id=res.data._id
+    // Emit Group that Joining
+    socket?.timeout(5000).emit("join_room", group, () => {
+      console.log("Join Group Emit Client");
+    });
+
+    return group;
+  }
+
+  async function leaveGroup(group: GroupChat, userID: string) {
+    if(group._id === null || group._id === undefined){
+      console.log("Group ID is null or undefined");
+      return;
+    }
+
+    group.member = group.member.filter((member) => member !== userID);
+    // Eject API
+    const res = await leaveGroupChat(group._id, userID, session?.user.token ?? "");
+    console.log("LEAVE GROUP",res)
+    if (!res) {
+      console.log("Error");
+      return;
+    }
+    //group._id=res.data._id
+    // Emit Group that Leaving
+    socket?.timeout(5000).emit("leave_room", group, () => {
+      console.log("Leave Group Emit Client");
+    });
+
+    const updatedGroupChats = groupChats.map(g =>
+      g._id === group._id ? { ...g, member: [...group.member] } : g
+    );
+    setGroupChats(updatedGroupChats);
+    
+    return group;
   }
 
   const handleCreate = () => {
-    onCreateGroup(name);   
+    onCreateGroup(name, "group", [userID]);   
     setOpen(false);        
     setName("");           
   };
 
-  const chatUser = (userId : string) => {
-    setSelectedChat(userId);
+  const chatUser = async (userId : string) => {
+    const sender = userID;
+    let group = groupChats.find((group) => (group.member.includes(userId) && group.member.includes(sender)));
+    if (group) {
+      setSelectedGroupChat(group);
+    }
+    else {
+      group = await onCreateGroup(userId, "private", [userId, sender]);
+      setSelectedGroupChat(group);
+    }
   };
 
-  function chatGroup(groupId: string): void {
-    setSelectedChat(groupId);
-    setIsGroupChat(true);
+  async function chatGroup(group: GroupChat): Promise<void> {
+    if (!group.member.includes(userID)) {
+      const updatedGroup = await joinGroup(group, userID);
+      if (updatedGroup) {
+        group = updatedGroup;
+      }
+    }
+
+    setSelectedGroupChat(group);
   }
 
-  function leaveGroup(name: string): void {
-    setGroupChats((prevGroup) => prevGroup.filter((group) => group.name !== name));
-    socket?.emit("leave_group", name, () => {
-      console.log("Leave Group Emit Client");
-    });
-    // setExpandedGroup("");
-    // setSelectedChat("");
-    // setIsGroupChat(false);
+  async function handleLeaveGroup(group: GroupChat): Promise<void> {
+    
+    if (group.member.includes(userID)) {
+      const updatedGroup = await leaveGroup(group, userID);
+      if (updatedGroup) {
+        group = updatedGroup;
+      }
+    }
+    if(group._id === selectedGroupChat?._id){
+      setSelectedGroupChat(undefined);
+    }
   }
 
   return (
@@ -248,41 +325,20 @@ export default function MainPage() {
                 >+</button>
               </div>
               <div className="space-y-2">
-                {groupChats.map((group, i) => (
-                  <div key={i} className="bg-gray-200 rounded">
-                    <div className="flex justify-between items-center px-4 py-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xl">👥</span>
-                        <span>{group.name} ({group.member.length})</span>
-                      </div>
-                      <div className="flex gap-2">
-                        {/* 👇 Leave Group button shows only if user is in group
-                        {group.member.includes(userID) && (
-                          <LogOut
-                            onClick={() => leaveGroup(group.name)}
-                            className="w-5 h-5 text-red-500 cursor-pointer"
-                          />
-                        )} */}
-                        <MessageSquare 
-                          className="w-5 h-5 cursor-pointer"
-                          onClick={() => chatGroup(group.name)}
-                         />
-                        <ChevronDown
-                          className="w-5 h-5 cursor-pointer"
-                          onClick={() => toggleGroup(group.name)}
-                        />
-                      </div>
-                    </div>
-                    {expandedGroup === group.name && (
-                      <div className="pl-10 pb-2 space-y-1">
-                        {group.member.map((member, idx) => (
-                          <div key={idx} className="text-sm text-gray-700">
-                            • {users.find(user => user._id === member)?.name || member}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+
+                {groupChats.map((group, idx) => (
+                  group.type==="group" ? 
+                    <GroupList
+                    group={group}
+                    userID={userID}
+                    key_index={idx}
+                    expandedGroup={expandedGroup}
+                    handleLeaveGroup={handleLeaveGroup}
+                    chatGroup={chatGroup}
+                    toggleGroup={toggleGroup} 
+                    users={users}                  
+                  />
+                  :<div key={idx}></div>    
                 ))}
               </div>
             </div>
@@ -292,6 +348,7 @@ export default function MainPage() {
               <h2 className="text-xl font-bold mb-2">User</h2>
               <div className="space-y-2">
                 {users.map((user, idx) => (
+                  user._id === userID ? <div key={idx}></div> :
                   <div
                   key={idx}
                   onClick={() => chatUser(user._id)}
@@ -313,7 +370,10 @@ export default function MainPage() {
             </div>
           </div>
           <div className="sm:col-span-3 lg:col-span-3  overflow-y-auto bg-white p-0 rounded shadow w-full h-full">
-            <ChatPanel groupChat={mockGroupChat}/>
+            <ChatPanel
+              groupChat={selectedGroupChat || null}
+              users={users}
+            />
           </div>
         </div>
       </div>
