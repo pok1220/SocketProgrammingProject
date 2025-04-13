@@ -3,13 +3,13 @@ export interface GroupChat{
     name:string,
     type:string,
     createdAt?:string,
-    member:string[]
+    member:User[]
     message:Message[]
 }
 
 export interface Message{
     text:string,
-    sendBy:string,
+    sendBy:User,
     createdAt:string,
 }
 

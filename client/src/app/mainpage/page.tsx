@@ -16,6 +16,7 @@ import getGroupChats from "@/libs/getGroupChats";
 import PrivateMenu from "../components/PrivateChat";
 import getUsers from "@/libs/getUsers";
 import { ChevronDown, LogOut, MessageSquare } from "lucide-react";
+import ChatPanel from "../components/ChatPanel";
 
 export default function MainPage() {
   const [groupChats, setGroupChats] = useState<GroupChat[]>([]);//Handler Group From Other
@@ -241,7 +242,7 @@ export default function MainPage() {
           </div>
         </div>
       </div>
-    </div>
+    </main>
 
   );
 }
