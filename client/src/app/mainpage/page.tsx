@@ -258,7 +258,7 @@ export default function MainPage() {
                 {groupChats.map((group, idx) => (
                   group.type==="group" ? 
                     <GroupList
-                    key={group._id}
+                    key={idx}
                     group={group}
                     userID={userID}
                     key_index={idx}

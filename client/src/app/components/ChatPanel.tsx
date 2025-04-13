@@ -9,7 +9,6 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/f
 import { Textarea } from "./ui/textarea";
 import { FormProvider } from "react-hook-form";
 import { Input } from "./ui/input";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "./ui/alert";
 import Button from "./ButtonLogin";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
@@ -114,34 +113,6 @@ export default function ChatPanel({
             </h1>
             }
             
-            {groupChat.type=="group"&&
-            
-            <AlertDialog>
-                {/* <AlertDialogTrigger><ExitIcon className="w-5 h-5 hover:text-red-500 cursor-pointer" /></AlertDialogTrigger> */}
-                            <AlertDialogContent className="max-w-lg rounded-md">
-                    <AlertDialogHeader>
-                        <AlertDialogTitle className="text-xl font-semibold mb-2">
-                        Are you sure to leave this group chat?
-                        </AlertDialogTitle>
-                        <AlertDialogDescription asChild className="text-red">
-                            Your message will be delete permanently.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter className="mt-4 flex justify-end gap-2">
-                        <AlertDialogCancel className="bg-gray-200 hover:bg-gray-300 text-black">
-                        cancel
-                        </AlertDialogCancel>
-                        <AlertDialogAction
-                        className="bg-green-600 hover:bg-green-700 text-white"
-                        asChild
-                        >
-                        <Button>
-                            confirm
-                        </Button>
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>}
           </div>
           <div className="w-full h-[70%] bg-amber-200 overflow-y-auto px-2 py-2">
             {allMessage.map((message, index) => (
