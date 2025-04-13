@@ -35,3 +35,8 @@ export interface CreateGroupResponse {
     data:GroupChat,
     success:boolean
 }
+
+export interface JoinRoomRequest {
+    ID:string,
+    userID:string
+}

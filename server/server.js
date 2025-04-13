@@ -111,7 +111,8 @@ io.on("connection",async (socket)=>{
             //     _id: data.userId,
             // }, {$addToSet: {room: data.roomId}});
             console.log("YOU NOW JOIN",data)
-            socket.join(data); //data is roomId(mongoObjid of room)
+            socket.join(data.ID); //data is roomId(mongoObjid of room)
+            socket.broadcast.emit("recieve_join_room",data)
         }catch(err){
             console.log(err);
         }

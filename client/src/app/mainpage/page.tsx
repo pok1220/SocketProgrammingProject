@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useSocket } from "@/providers/SocketProvider";
 import GroupMenu from "../components/GroupMenu";
-import { CreateGroupResponse, GroupChat, User, UserStatusResponse } from "../../../interface";
+import { CreateGroupResponse, GroupChat, JoinRoomRequest, User, UserStatusResponse } from "../../../interface";
 import { useSession } from "next-auth/react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "../components/ui/dialog";
 import { Button } from "../components/ui/Button";
@@ -68,6 +68,24 @@ export default function MainPage() {
       setGroupChats((previous) => [...previous, group]);
     }
 
+    function onReceiveNewJoin(newJoin: JoinRoomRequest) {
+      console.log("Hello Group from other");
+    
+      setGroupChats((prevGroupChats) =>
+        prevGroupChats.map((group) => {
+          if (group._id === newJoin.ID) {
+            const alreadyMember = group.member.includes(newJoin.userID);
+            return {
+              ...group,
+              member: alreadyMember ? group.member : [...group.member, newJoin.userID],
+            };
+          }
+          return group;
+        })
+      );
+    }
+    
+
     function onStatus(data: UserStatusResponse) { // Handler Display User Status
       console.log("Hello Other Status");
     
@@ -79,6 +97,7 @@ export default function MainPage() {
     }
 
     socket?.on("receive_group", onReceiveGroup); // Handler Group From Other
+    socket?.on("recieve_join_room", onReceiveNewJoin);
     socket?.on("user_status",onStatus);//Handler Display User Status
 
     //Fetch Data in mount
@@ -192,7 +211,8 @@ export default function MainPage() {
       }
     }
     // console.log("THIS GROUP",group)
-    socket?.timeout(500).emit("join_room", group._id, () => {
+    const sendJoinRoom:JoinRoomRequest={ID:group._id??"",userID:userID}
+    socket?.timeout(500).emit("join_room", sendJoinRoom, () => {
       console.log("Join Group Emit Client");
     });
     setSelectedGroupChat(group);
