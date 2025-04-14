@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useSocket } from "@/providers/SocketProvider";
 import GroupMenu from "../components/GroupMenu";
-import { CreateGroupResponse, GroupChat, Message, User, UserStatusResponse } from "../../../interface";
+import { Action, CreateGroupResponse, GroupChat, Message, User, UserStatusResponse } from "../../../interface";
 import { useSession } from "next-auth/react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "../components/ui/dialog";
 import { Button } from "../components/ui/Button";
@@ -78,8 +78,36 @@ export default function MainPage() {
       );
     }
 
+    function onActionRoom(action: Action) { // Handler Group From Other
+      console.log("receive action", action);
+      const groupId = action.groupID;
+      const actionType = action.action;
+      const userId = action.userID;
+
+      switch (actionType) {
+        case "join":
+          setGroupChats((prevGroupChats) =>
+            prevGroupChats.map((groupChat) =>
+              groupChat._id === groupId ? { ...groupChat, member: [...groupChat.member, userId] } : groupChat
+            )
+          );
+          break;
+        case "leave":
+          setGroupChats((prevGroupChats) =>
+            prevGroupChats.map((groupChat) =>
+              groupChat._id === groupId ? { ...groupChat, member: groupChat.member.filter(member => member !== userId) } : groupChat
+            )
+          );
+          break;
+        default:
+          break;
+      }
+    }
+
+
     socket?.on("receive_group", onReceiveGroup); // Handler Group From Other
     socket?.on("user_status", onStatus);//Handler Display User Status
+    socket?.on("user_action_room", onActionRoom); // Handler Group From Other
 
     //Fetch Data in mount
     fetchGroupChats();
@@ -88,6 +116,7 @@ export default function MainPage() {
     return () => {
       socket?.off("receive_group", onReceiveGroup);
       socket?.off("user_status", onStatus);//Handler Display User Status
+      socket?.off("user_action_room", onActionRoom); // Handler Group From Other
     };
   }, [session, socket]);
 
@@ -104,6 +133,16 @@ export default function MainPage() {
       joinWorldChat();
     }
   }, [userID, groupChats]);
+
+  // useEffect(() => {
+  //   console.log("CURRENT GROUP ID", currentGroupId);
+  //   if (socket && currentGroupId) {
+  //     socket?.timeout(5000).emit("join_room", currentGroupId, () => {
+  //       console.log("join agin room", currentGroupId);
+  //     });
+  //   }
+  //   return () => {}
+  // }, []);
 
   async function onCreateGroup(name: string, type: string, member: string[]) {
     const group: GroupChat = {
@@ -207,6 +246,9 @@ export default function MainPage() {
         await requestGroupChat(group._id || "");
       }
     }
+    if(group){
+      localStorage.setItem("currentGroupId", group._id || "");
+    }
 
   };
 
@@ -215,6 +257,16 @@ export default function MainPage() {
       const updatedGroup = await joinGroup(group, userID);
       if (updatedGroup) {
         group = updatedGroup;
+
+        // tell other user that you join group
+        const action = {
+          groupID: group._id,
+          action: "join",
+          userID: userID,
+        }
+        socket?.timeout(500).emit("action_room", action, () => {
+          console.log("Another User Join Group");
+        });
       }
     }
     // console.log("THIS GROUP",group)
@@ -223,6 +275,7 @@ export default function MainPage() {
     });
 
     requestGroupChat(group._id || "");
+    localStorage.setItem("currentGroupId", group._id || "");
   }
 
   async function handleLeaveGroup(group: GroupChat): Promise<void> {
@@ -231,6 +284,16 @@ export default function MainPage() {
       const updatedGroup = await leaveGroup(group, userID);
       if (updatedGroup) {
         group = updatedGroup;
+
+        const action = {
+          groupID: group._id,
+          action: "leave",
+          userID: userID,
+        }
+        // tell other user that you leave group
+        socket?.timeout(500).emit("action_room", action, () => {
+          console.log("Another User Join Group");
+        });
       }
     }
     if (group._id === selectedGroupChat?._id) {
@@ -315,18 +378,16 @@ export default function MainPage() {
               </div>
               <div className="space-y-2">
 
-                {[
+                {
+                [
                   // ให้ World Chat มาอยู่บนสุด
                   ...groupChats.filter(g => g._id === "67fd2124444820f6576eb73a"),
                   // แล้วค่อยตามด้วยกลุ่มอื่น
-                  ...groupChats.filter(g => g.type === "group" && g._id !== "67fd2124444820f6576eb73a")
+                  ...groupChats.filter(g => (g.type === "group" && g._id !== "67fd2124444820f6576eb73a"))
                 ].map((group, idx) => (
                   <GroupList
                     key={idx}
-                    group={{
-                      ...group,
-                      name: group._id === "67fd2124444820f6576eb73a" ? `${group.name}` : group.name
-                    }}
+                    group={group}
                     userID={userID}
                     key_index={idx}
                     expandedGroup={expandedGroup}

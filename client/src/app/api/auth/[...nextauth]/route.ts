@@ -55,6 +55,7 @@ export const authOptions = {
             session.user.name = token.name;
             session.user.token = token.token   
             session.user.isOn= token.isOn 
+            session.user.joinRoom=token.joinRoom
         }
         return session
     },

@@ -7,6 +7,12 @@ export interface GroupChat{
     message:Message[]
 }
 
+export interface Action{
+    groupID:string,
+    action:string,
+    userID:string,
+}
+
 export interface Message{
     roomID?:string,
     text:string,

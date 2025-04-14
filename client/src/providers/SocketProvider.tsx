@@ -33,6 +33,13 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
         setSocket(socketInstance);
         const data:UserStatusResponse={userID:userID,isOn:true}
         socketInstance.emit("online",data)
+
+        const joinRoom = localStorage.getItem("currentGroupId") || "";
+        console.log("Join room:", joinRoom);
+        if(joinRoom != ""){
+          socketInstance.emit("join_room", joinRoom);
+        }
+
         const res=putUserStatus(true,token,userID)
       });
 
