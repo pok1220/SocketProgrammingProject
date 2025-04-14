@@ -141,6 +141,15 @@ export default function MainPage() {
 
       if (worldChat && !worldChat.member.includes(userID)) {
         await joinGroup(worldChat, userID);
+         // tell other user that you join group
+         const action = {
+          groupID: "67fd2124444820f6576eb73a",
+          action: "join",
+          userID: userID,
+        }
+        socket?.timeout(500).emit("action_room", action, () => {
+          console.log("Another User Join Group");
+        });
       }
     };
 
