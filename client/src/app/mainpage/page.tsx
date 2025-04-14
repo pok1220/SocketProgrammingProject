@@ -142,7 +142,6 @@ export default function MainPage() {
       console.log("Error");
       return;
     }
-    //group._id=res.data._id
     // Emit Group that Joining
     socket?.timeout(500).emit("join_room", group._id, () => {
       console.log("Join Group Emit Client");
@@ -208,6 +207,7 @@ export default function MainPage() {
     socket?.timeout(500).emit("join_room", group._id, () => {
       console.log("Join Group Emit Client");
     });
+
     setSelectedGroupChat(group);
   }
 
