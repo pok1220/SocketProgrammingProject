@@ -21,11 +21,11 @@ import { all } from "axios";
 export default function ChatPanel({
   groupChat,
   users,
-  updateMessage,
+  addMessage,
 }:{
   groupChat:GroupChat | null
   users: User[]
-  updateMessage: (groupID:string, message: Message[]) => void
+  addMessage: (message: Message) => void
 }) {
   if (!groupChat) {
     return (
@@ -51,11 +51,8 @@ export default function ChatPanel({
     
     function onReceiveMessage(messsage: Message) { // Handler Message from Other
       console.log("Hello Message from other")
-      const newMessage: Message[] = groupChat?.message || [];
-      newMessage.push(messsage);
-      console.log("New message", newMessage);
-      if (groupChat && groupChat._id) {
-        updateMessage(groupChat._id, newMessage);
+      if (messsage.roomID) {
+        addMessage(messsage);
       }
         //setAllMessage((previous) => [...previous, messsage]);
       }
@@ -91,11 +88,8 @@ export default function ChatPanel({
           console.log("Create Group Emit Client");
       });
 
-      const newMessage: Message[] = allMessage;
-      newMessage.push(myMessageData);
-      if (groupChat && groupChat._id) {
-        updateMessage(groupChat._id, newMessage);
-      }
+      addMessage(myMessageData); // update Message
+      
       form.reset();
     }
     const socket = useSocket();

@@ -210,21 +210,36 @@ export default function MainPage() {
     }
   }
 
-  function updateMessage(groupID: string, message: Message[]): void {
-    console.log("UPDATE MESSAGE",message)
+  function addMessage(messsage: Message): void {
+    console.log("ADD MESSAGE",messsage);
+    const groupID = messsage.roomID;
     setGroupChats((prevGroupChats) =>
       prevGroupChats.map((groupChat) =>
-        groupChat._id === groupID ? { ...groupChat, message: message } : groupChat
+        groupChat._id === groupID ? { ...groupChat, message: [...groupChat.message, messsage] } : groupChat
       )
     );
+
     if(selectedGroupChat && selectedGroupChat._id === groupID){
       setSelectedGroupChat((prev) => {
         if (prev) {
-          return { ...prev, message: message };
+          return { ...prev, message: [...prev.message, messsage] };
         }
         return prev;
       });
     }
+    // setGroupChats((prevGroupChats) =>
+    //   prevGroupChats.map((groupChat) =>
+    //     groupChat._id === groupID ? { ...groupChat, message: message } : groupChat
+    //   )
+    // );
+    // if(selectedGroupChat && selectedGroupChat._id === groupID){
+    //   setSelectedGroupChat((prev) => {
+    //     if (prev) {
+    //       return { ...prev, message: message };
+    //     }
+    //     return prev;
+    //   });
+    // }
 
   }
 
@@ -320,7 +335,7 @@ export default function MainPage() {
             <ChatPanel
               groupChat={selectedGroupChat || null}
               users={users} 
-              updateMessage={updateMessage}
+              addMessage={addMessage}
             />
           </div>
         </div>
