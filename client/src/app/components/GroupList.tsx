@@ -5,36 +5,37 @@ import Button from "./ButtonLogin";
 
 
 export default function GroupList({
-    group, 
-    userID, 
+    group,
+    userID,
     key_index,
     expandedGroup,
     handleLeaveGroup,
     chatGroup,
     toggleGroup,
     users
-}: { 
-    group: GroupChat, 
-    userID: string, 
+}: {
+    group: GroupChat,
+    userID: string,
     key_index: number,
-    expandedGroup: string, 
-    handleLeaveGroup: (group: GroupChat) => void 
+    expandedGroup: string,
+    handleLeaveGroup: (group: GroupChat) => void
     chatGroup: (group: GroupChat) => void
     toggleGroup: (groupName: string) => void
     users: User[]
-    }) {
-   
-    return(
+}) {
+    const isWorldChat = group._id === "67fd2124444820f6576eb73a";
+
+    return (
         <div key={key_index} className="bg-gray-200 rounded">
             <div className="flex justify-between items-center px-4 py-2">
                 <div className="flex items-center gap-2">
-                <span className="text-xl">👥</span>
-                <span>{group.name} ({group.member.length})</span>
+                    <span className="text-xl">{isWorldChat ? "🌍":"👥"}</span>
+                    <span>{group.name} ({group.member.length})</span>
                 </div>
                 <div className="flex gap-2">
-                {/* 👇 Leave Group button shows only if user is in group*/}
-                {group.member.includes(userID) && (
-                    <AlertDialog>
+                    {/* 👇 Leave Group button shows only if user is in group*/}
+                    {group.member.includes(userID) && !isWorldChat && (
+                        <AlertDialog>
                             <AlertDialogTrigger><LogOut className="w-5 h-5 text-red-500 cursor-pointer" /></AlertDialogTrigger>
                             <AlertDialogContent className="max-w-lg rounded-md">
                                 <AlertDialogHeader>
@@ -54,7 +55,7 @@ export default function GroupList({
                                         asChild
                                     >
                                         <Button
-                                        onClick={() => handleLeaveGroup(group)}
+                                            onClick={() => handleLeaveGroup(group)}
                                         >
                                             confirm
                                         </Button>
@@ -62,32 +63,32 @@ export default function GroupList({
                                 </AlertDialogFooter>
                             </AlertDialogContent>
                         </AlertDialog>
-                )} 
-                <MessageSquare 
-                    className="w-5 h-5 cursor-pointer"
-                    onClick={() => chatGroup(group)}
+                    )}
+                    <MessageSquare
+                        className="w-5 h-5 cursor-pointer"
+                        onClick={() => chatGroup(group)}
                     />
                     {
-                    expandedGroup === group.name ?
-                    <ChevronUp
-                        className="w-5 h-5 cursor-pointer"
-                        onClick={() => toggleGroup(group.name)}
-                    />
-                    :
-                    <ChevronDown
-                        className="w-5 h-5 cursor-pointer"
-                        onClick={() => toggleGroup(group.name)}
-                    />
+                        expandedGroup === group.name ?
+                            <ChevronUp
+                                className="w-5 h-5 cursor-pointer"
+                                onClick={() => toggleGroup(group.name)}
+                            />
+                            :
+                            <ChevronDown
+                                className="w-5 h-5 cursor-pointer"
+                                onClick={() => toggleGroup(group.name)}
+                            />
                     }
                 </div>
             </div>
             {expandedGroup === group.name && (
                 <div className="pl-10 pb-2 space-y-1">
-                {group.member.map((member, idx) => (
-                    <div key={idx} className="text-sm text-gray-700">
-                    • {users.find(user => user._id === String(member))?.name || member.toString()}
-                    </div>
-                ))}
+                    {group.member.map((member, idx) => (
+                        <div key={idx} className="text-sm text-gray-700">
+                            • {users.find(user => user._id === String(member))?.name || member.toString()}
+                        </div>
+                    ))}
                 </div>
             )}
         </div>
