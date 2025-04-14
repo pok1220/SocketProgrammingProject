@@ -143,10 +143,6 @@ export default function MainPage() {
       console.log("Error");
       return;
     }
-    // Emit Group that Joining
-    socket?.timeout(500).emit("join_room", group._id, () => {
-      console.log("Join Group Emit Client");
-    });
 
     return group;
   }
@@ -200,12 +196,18 @@ export default function MainPage() {
     const sender = userID;
     let group = groupChats.find((group) => (group.type === "private" && group.member.includes(userId) && group.member.includes(sender)));
     if (group) {
-      setSelectedGroupChat(group);
+      requestGroupChat(group._id || "");
+      socket?.timeout(500).emit("join_room", group._id, () => {
+        console.log("Join Group Emit Client");
+      });
     }
     else {
       group = await onCreateGroup(userId, "private", [userId, sender]);
-      setSelectedGroupChat(group);
+      if (group) {
+        await requestGroupChat(group._id || "");
+      }
     }
+
   };
 
   async function chatGroup(group: GroupChat): Promise<void> {
