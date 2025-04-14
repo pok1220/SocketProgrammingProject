@@ -21,6 +21,7 @@ import joinGroupChat from "@/libs/joinGroupChat";
 import leaveGroupChat from "@/libs/leaveGroupChat";
 import GroupList from "../components/GroupList";
 import getGroupChat from "@/libs/getGroupChat";
+import { set } from "zod";
 
 export default function MainPage() {
   const [groupChats, setGroupChats] = useState<GroupChat[]>([]);//Handler Group From Other
@@ -91,12 +92,26 @@ export default function MainPage() {
               groupChat._id === groupId ? { ...groupChat, member: [...groupChat.member, userId] } : groupChat
             )
           );
+          setSelectedGroupChat((prev) => {
+            if (prev && prev._id === groupId) {
+              return { ...prev, member: [...prev.member, userId] };
+            }
+            return prev;
+          }
+          );
           break;
         case "leave":
           setGroupChats((prevGroupChats) =>
             prevGroupChats.map((groupChat) =>
               groupChat._id === groupId ? { ...groupChat, member: groupChat.member.filter(member => member !== userId) } : groupChat
             )
+          );
+          setSelectedGroupChat((prev) => {
+            if (prev && prev._id === groupId) {
+              return { ...prev, member: prev.member.filter(member => member !== userId) };
+            }
+            return prev;
+          }
           );
           break;
         default:
@@ -133,16 +148,6 @@ export default function MainPage() {
       joinWorldChat();
     }
   }, [userID, groupChats]);
-
-  // useEffect(() => {
-  //   console.log("CURRENT GROUP ID", currentGroupId);
-  //   if (socket && currentGroupId) {
-  //     socket?.timeout(5000).emit("join_room", currentGroupId, () => {
-  //       console.log("join agin room", currentGroupId);
-  //     });
-  //   }
-  //   return () => {}
-  // }, []);
 
   async function onCreateGroup(name: string, type: string, member: string[]) {
     const group: GroupChat = {
