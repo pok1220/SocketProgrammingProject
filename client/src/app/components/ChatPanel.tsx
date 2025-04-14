@@ -15,14 +15,17 @@ import { useSession } from "next-auth/react";
 import SendMessage from "@/libs/sendMessage";
 import sendMessage from "@/libs/sendMessage";
 import { useSocket } from "@/providers/SocketProvider";
+import { all } from "axios";
 
   
 export default function ChatPanel({
   groupChat,
-  users
+  users,
+  updateMessage,
 }:{
   groupChat:GroupChat | null
   users: User[]
+  updateMessage: (groupID:string, message: Message[]) => void
 }) {
   if (!groupChat) {
     return (
@@ -48,7 +51,13 @@ export default function ChatPanel({
     
     function onReceiveMessage(messsage: Message) { // Handler Message from Other
       console.log("Hello Message from other")
-        setAllMessage((previous) => [...previous, messsage]);
+      const newMessage: Message[] = groupChat?.message || [];
+      newMessage.push(messsage);
+      console.log("New message", newMessage);
+      if (groupChat && groupChat._id) {
+        updateMessage(groupChat._id, newMessage);
+      }
+        //setAllMessage((previous) => [...previous, messsage]);
       }
   
     async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -82,8 +91,11 @@ export default function ChatPanel({
           console.log("Create Group Emit Client");
       });
 
-      //setAllMessage
-      setAllMessage((previous) => [...previous, myMessageData])
+      const newMessage: Message[] = allMessage;
+      newMessage.push(myMessageData);
+      if (groupChat && groupChat._id) {
+        updateMessage(groupChat._id, newMessage);
+      }
       form.reset();
     }
     const socket = useSocket();

@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useSocket } from "@/providers/SocketProvider";
 import GroupMenu from "../components/GroupMenu";
-import { CreateGroupResponse, GroupChat, User, UserStatusResponse } from "../../../interface";
+import { CreateGroupResponse, GroupChat, Message, User, UserStatusResponse } from "../../../interface";
 import { useSession } from "next-auth/react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "../components/ui/dialog";
 import { Button } from "../components/ui/Button";
@@ -62,7 +62,6 @@ export default function MainPage() {
       }
   };
   
-
     function onReceiveGroup(group: GroupChat) { // Handler Group From Other
     console.log("Hello Group from other")
       setGroupChats((previous) => [...previous, group]);
@@ -211,6 +210,24 @@ export default function MainPage() {
     }
   }
 
+  function updateMessage(groupID: string, message: Message[]): void {
+    console.log("UPDATE MESSAGE",message)
+    setGroupChats((prevGroupChats) =>
+      prevGroupChats.map((groupChat) =>
+        groupChat._id === groupID ? { ...groupChat, message: message } : groupChat
+      )
+    );
+    if(selectedGroupChat && selectedGroupChat._id === groupID){
+      setSelectedGroupChat((prev) => {
+        if (prev) {
+          return { ...prev, message: message };
+        }
+        return prev;
+      });
+    }
+
+  }
+
   return (
     <main className="flex bg-blue-200 justify-center min-h-screen w-full h-full mx-0">
     <div className="flex flex-col w-[100%] h-[100%] my-12 px-2 m-auto">
@@ -302,7 +319,8 @@ export default function MainPage() {
           <div className="sm:col-span-3 lg:col-span-3  overflow-y-auto bg-white p-0 rounded shadow w-full h-full">
             <ChatPanel
               groupChat={selectedGroupChat || null}
-              users={users}
+              users={users} 
+              updateMessage={updateMessage}
             />
           </div>
         </div>
