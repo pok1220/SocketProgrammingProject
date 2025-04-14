@@ -20,6 +20,7 @@ import ChatPanel from "../components/ChatPanel";
 import joinGroupChat from "@/libs/joinGroupChat";
 import leaveGroupChat from "@/libs/leaveGroupChat";
 import GroupList from "../components/GroupList";
+import getGroupChat from "@/libs/getGroupChat";
 
 export default function MainPage() {
   const [groupChats, setGroupChats] = useState<GroupChat[]>([]);//Handler Group From Other
@@ -178,6 +179,17 @@ export default function MainPage() {
     return group;
   }
 
+  async function requestGroupChat(groupID: string) {
+    if(groupID == "") return;
+    const groupChat = await getGroupChat(groupID);
+    console.log("GROUP CHAT", groupChat);
+    if (!groupChat) {
+      console.log("Error to get group chat");
+      return;
+    }
+    setSelectedGroupChat(groupChat);
+  }
+
   const handleCreate = () => {
     onCreateGroup(name, "group", [userID]);
     setOpen(false);
@@ -208,7 +220,7 @@ export default function MainPage() {
       console.log("Join Group Emit Client");
     });
 
-    setSelectedGroupChat(group);
+    requestGroupChat(group._id || "");
   }
 
   async function handleLeaveGroup(group: GroupChat): Promise<void> {
