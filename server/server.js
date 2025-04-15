@@ -157,6 +157,10 @@ io.on("connection",async (socket)=>{
     socket.on("action_room", (data)=>{
         socket.broadcast.emit("user_action_room",data);
     });
+    socket.on("new_comer", (data)=>{
+        console.log("NEW COMER",data)
+        socket.broadcast.emit("recieve_newcomer",data);
+    });
 })
 
 
