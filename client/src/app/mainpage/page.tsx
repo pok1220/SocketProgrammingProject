@@ -192,7 +192,7 @@ export default function MainPage() {
     }
     group._id = res.data._id
     // Emit Group that Creating
-    socket?.timeout(5000).emit("create_room", group, () => {
+    socket?.timeout(5000).emit("create_room", group._id, () => {
       console.log("Create Group Emit Client");
     });
 
@@ -275,9 +275,16 @@ export default function MainPage() {
     }
     else {
       group = await onCreateGroup(userId, "private", [userId, sender]);
-      if (group) {
-        await requestGroupChat(group._id || "");
-      }
+      // const g:GroupChat={
+      //   member:[sender,userId],
+      //   message:[],
+      //   name:userId,
+      //   type:"private",
+      // }
+      // setGroupChats((previous) => [...previous, g]);
+      // if (group) {
+      //   await requestGroupChat(group._id || "");
+      // }
     }
     if(group){
       localStorage.setItem("currentGroupId", group._id || "");
