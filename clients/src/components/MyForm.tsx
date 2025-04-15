@@ -21,7 +21,7 @@ export function MyForm({fooEvent,room}:{fooEvent:Function,room:string}) {
       ]);
 
     setIsLoading(true);
-    socket.timeout(5000).emit('create-something', message, () => {
+    socket.timeout(100).emit('create-something', message, () => {
       setIsLoading(false);
     });
 

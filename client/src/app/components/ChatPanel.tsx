@@ -15,14 +15,17 @@ import { useSession } from "next-auth/react";
 import SendMessage from "@/libs/sendMessage";
 import sendMessage from "@/libs/sendMessage";
 import { useSocket } from "@/providers/SocketProvider";
+import { all } from "axios";
 
   
 export default function ChatPanel({
   groupChat,
-  users
+  users,
+  addMessage,
 }:{
   groupChat:GroupChat | null
   users: User[]
+  addMessage: (message: Message) => void
 }) {
   if (!groupChat) {
     return (
@@ -48,8 +51,10 @@ export default function ChatPanel({
     
     function onReceiveMessage(messsage: Message) { // Handler Message from Other
       console.log("Hello Message from other")
-        setAllMessage((previous) => [...previous, messsage]);
+      if (messsage.roomID) {
+        addMessage(messsage);
       }
+    }
   
     async function onSubmit(values: z.infer<typeof formSchema>) {
       console.log("Form submitted:", values.text);
@@ -82,20 +87,32 @@ export default function ChatPanel({
           console.log("Create Group Emit Client");
       });
 
-      //setAllMessage
-      setAllMessage((previous) => [...previous, myMessageData])
+      addMessage(myMessageData); // update Message
+      
       form.reset();
     }
+    
     const socket = useSocket();
     const [allMessage,setAllMessage] = useState<Message[]>([])
-    useEffect(() => {
-        setAllMessage(groupChat?.message || []);
-        socket?.on("receive_message",onReceiveMessage)
-      }, [groupChat?.message]);
-
     const { data: session } = useSession();
-    const token=session?.user.token??""
-    const myUserID=session?.user.id??""
+    const token=session?.user.token??"";
+    const myUserID=session?.user.id??"";
+
+    useEffect(() => {
+      setAllMessage(groupChat?.message || []);
+    }, [groupChat?.message]);
+  
+    useEffect(() => {
+      if (socket && groupChat?._id) {
+        socket.on("receive_message", onReceiveMessage);
+  
+        // Cleanup function to remove the listener when the component unmounts or the dependency changes
+        return () => {
+          socket.off("receive_message", onReceiveMessage);
+        };
+      }
+    }, [socket, groupChat?._id, addMessage]); // Add addMessage to dependencies if it's defined outside
+
     return (
  
       <FormProvider {...form}>
