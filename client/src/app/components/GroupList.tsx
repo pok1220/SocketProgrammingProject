@@ -24,7 +24,9 @@ export default function GroupList({
     users: User[]
 }) {
     const isWorldChat = group._id === "67fd2124444820f6576eb73a";
-
+    // if(isWorldChat){
+    //     console.log("GROUP MEME",group.member,users)
+    // }
     return (
         <div key={key_index} className="bg-gray-200 rounded">
             <div className="flex justify-between items-center px-4 py-2">

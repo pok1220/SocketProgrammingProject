@@ -69,6 +69,11 @@ export default function MainPage() {
       setGroupChats((previous) => [...previous, group]);
     }
 
+    function onReceiveNewComer(user: User) { // Handler Group From Other
+      console.log("Hello NewComers",user)
+      setUsers((previous) => [...previous, user]);
+    }
+
     function onStatus(data: UserStatusResponse) { // Handler Display User Status
       console.log("Hello Other Status");
 
@@ -123,6 +128,7 @@ export default function MainPage() {
     socket?.on("receive_group", onReceiveGroup); // Handler Group From Other
     socket?.on("user_status", onStatus);//Handler Display User Status
     socket?.on("user_action_room", onActionRoom); // Handler Group From Other
+    socket?.on("recieve_newcomer", onReceiveNewComer); // Handler Newcomer
 
     //Fetch Data in mount
     fetchGroupChats();
@@ -132,6 +138,7 @@ export default function MainPage() {
       socket?.off("receive_group", onReceiveGroup);
       socket?.off("user_status", onStatus);//Handler Display User Status
       socket?.off("user_action_room", onActionRoom); // Handler Group From Other
+      socket?.off("recieve_newcomer", onReceiveNewComer); // Handler Newcomer
     };
   }, [session, socket]);
 
@@ -147,13 +154,24 @@ export default function MainPage() {
           action: "join",
           userID: userID,
         }
+
         socket?.timeout(500).emit("action_room", action, () => {
           console.log("Another User Join Group");
+        });
+
+        const newComer:User={
+          _id:userID,
+          name:session?.user.name!,
+          isOn:true
+        }
+        socket?.timeout(500).emit("new_comer",newComer , () => {
+          console.log("New User Join Group");
         });
       }
     };
 
     if (userID && groupChats.length > 0) {
+      
       joinWorldChat();
     }
   }, [userID, groupChats]);
@@ -190,13 +208,14 @@ export default function MainPage() {
 
     group.member.push(userID);
     // Eject API
-    const res = await joinGroupChat(group._id, userID, session?.user.token ?? "");
-    console.log("JOIN GROUP", res)
-    if (!res) {
-      console.log("Error");
-      return;
-    }
-
+    
+      const res = await joinGroupChat(group._id, userID, session?.user.token ?? "");
+      console.log("JOIN GROUP", res)
+      if (!res) {
+        console.log("Error");
+        return;
+      }
+    
     return group;
   }
 
