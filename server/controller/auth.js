@@ -1,4 +1,6 @@
 const User= require('../models/User');
+const mongoose = require('mongoose');
+const GroupChat = require('../models/GroupChat')
 
 //@desc Register user
 //@route  POST /api/v1/auth/register
@@ -15,6 +17,13 @@ exports.register=async (req,res,next)=> {
             password,
             isOn
         });
+        if(!user){
+            return res.status(400).json({success:false,msg:"Cannot create user"});
+        }
+        // console.log(user);
+        const groupChat = await GroupChat.updateOne({
+            _id: '67fd2124444820f6576eb73a',
+        },{ $addToSet: {member: user._id}});
         // const token=user.getSignedJwtToken();
         // res.status(200).json({success:true,data:user,token:token})
         sendTokenResponse(user,200,res)
