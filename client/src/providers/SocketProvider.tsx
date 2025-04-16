@@ -17,11 +17,14 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     if (status === "authenticated" && session?.user?.token) {
-      const URL =
+      // const URL =
+        // process.env.NODE_ENV === "production"
+        //   ? "https://your-production-url"
+        //   : "http://localhost:8080";
+        const URL =
         process.env.NODE_ENV === "production"
-          ? "https://your-production-url"
-          : "http://localhost:8080";
-
+          ? "http://socket-backend-compnet-11.us-east-1.elasticbeanstalk.com"
+          : "http://socket-backend-compnet-11.us-east-1.elasticbeanstalk.com";
       const socketInstance = io(URL, {
         auth: {
           token: session.user.token,
