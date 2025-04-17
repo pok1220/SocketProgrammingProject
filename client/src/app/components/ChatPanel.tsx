@@ -57,7 +57,9 @@ export default function ChatPanel({
     }
   
     async function onSubmit(values: z.infer<typeof formSchema>) {
-      console.log("Form submitted:", values.text);
+      let tmp_values=values
+      form.reset();
+      console.log("Form submitted:", tmp_values.text);
       const userData:User={
         _id:myUserID,
         isOn:true,
@@ -65,7 +67,7 @@ export default function ChatPanel({
       }
       const messageData:MessageRequest={
         sendBy:myUserID,
-        text:values.text,
+        text:tmp_values.text,
         // createdAt:new Date().toDateString()
       }
       console.log(messageData)
@@ -78,7 +80,7 @@ export default function ChatPanel({
       const myMessageData:Message={
         roomID:groupChat?._id,
         sendBy:userData,
-        text:values.text,
+        text:tmp_values.text,
         createdAt:new Date().toString()
       }
       // console.log("MESSAGE",myMessageData)
@@ -88,8 +90,6 @@ export default function ChatPanel({
       });
 
       addMessage(myMessageData); // update Message
-      
-      form.reset();
     }
     
     const socket = useSocket();
