@@ -69,9 +69,19 @@ export default function MainPage() {
       setGroupChats((previous) => [...previous, group]);
     }
 
-    function onReceiveNewComer(user: User) { // Handler Group From Other
-      console.log("Hello NewComers",user)
-      setUsers((previous) => [...previous, user]);
+    // function onReceiveNewComer(user: User) { // Handler Group From Other
+    //   console.log("Hello NewComers",user)
+    //   setUsers((previous) => [...previous, user]);
+    // }
+
+    function onReceiveNewComer(user: User) {
+      setUsers((previous) => {
+        const isDuplicate = previous.some((u) => u._id === user._id);
+        if (isDuplicate) {
+          return previous;
+        }
+        return [...previous, user];
+      });
     }
 
     function onStatus(data: UserStatusResponse) { // Handler Display User Status
@@ -84,45 +94,67 @@ export default function MainPage() {
       );
     }
 
-    function onActionRoom(action: Action) { // Handler Group From Other
+    function onActionRoom(action: Action) {
       console.log("receive action", action);
       const groupId = action.groupID;
       const actionType = action.action;
       const userId = action.userID;
-
+    
       switch (actionType) {
         case "join":
           setGroupChats((prevGroupChats) =>
-            prevGroupChats.map((groupChat) =>
-              groupChat._id === groupId ? { ...groupChat, member: [...groupChat.member, userId] } : groupChat
-            )
+            prevGroupChats.map((groupChat) => {
+              if (groupChat._id !== groupId) return groupChat;
+    
+              const alreadyMember = groupChat.member.includes(userId);
+              if (alreadyMember) return groupChat;
+    
+              return {
+                ...groupChat,
+                member: [...groupChat.member, userId],
+              };
+            })
           );
           setSelectedGroupChat((prev) => {
-            if (prev && prev._id === groupId) {
-              return { ...prev, member: [...prev.member, userId] };
-            }
-            return prev;
-          }
-          );
+            if (!prev || prev._id !== groupId) return prev;
+    
+            const alreadyMember = prev.member.includes(userId);
+            if (alreadyMember) return prev;
+    
+            return {
+              ...prev,
+              member: [...prev.member, userId],
+            };
+          });
           break;
+    
         case "leave":
           setGroupChats((prevGroupChats) =>
             prevGroupChats.map((groupChat) =>
-              groupChat._id === groupId ? { ...groupChat, member: groupChat.member.filter(member => member !== userId) } : groupChat
+              groupChat._id === groupId
+                ? {
+                    ...groupChat,
+                    member: groupChat.member.filter((member) => member !== userId),
+                  }
+                : groupChat
             )
           );
           setSelectedGroupChat((prev) => {
             if (prev && prev._id === groupId) {
-              return { ...prev, member: prev.member.filter(member => member !== userId) };
+              return {
+                ...prev,
+                member: prev.member.filter((member) => member !== userId),
+              };
             }
             return prev;
-          }
-          );
+          });
           break;
+    
         default:
           break;
       }
     }
+    
 
 
     socket?.on("receive_group", onReceiveGroup); // Handler Group From Other
@@ -288,6 +320,10 @@ export default function MainPage() {
     }
     if(group){
       localStorage.setItem("currentGroupId", group._id || "");
+      requestGroupChat(group._id || "");
+      socket?.timeout(500).emit("join_room", group._id, () => {
+        console.log("Join Group Emit Client");
+      });
     }
 
   };
