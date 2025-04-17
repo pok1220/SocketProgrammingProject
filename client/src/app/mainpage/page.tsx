@@ -174,7 +174,7 @@ export default function MainPage() {
     }
     group._id = res.data._id
     // Emit Group that Creating
-    socket?.timeout(5000).emit("create_room", group, () => {
+    socket?.timeout(5000).emit("create_room", group._id, () => {
       console.log("Create Group Emit Client");
     });
 
