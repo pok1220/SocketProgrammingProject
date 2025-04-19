@@ -215,6 +215,7 @@ export default function MainPage() {
       member: member,
       type: type,
     };
+    setGroupChats((previous) => [...previous, group]);
     // Eject API
     const res: CreateGroupResponse = await createGroupChat(group, session?.user.token ?? "");
     console.log("CREATE GROUP", res)
@@ -227,8 +228,7 @@ export default function MainPage() {
     socket?.timeout(5000).emit("create_room", group, () => {
       console.log("Create Group Emit Client");
     });
-
-    setGroupChats((previous) => [...previous, group]);
+    
     return group;
   }
 
@@ -299,6 +299,7 @@ export default function MainPage() {
   const chatUser = async (userId: string) => {
     const sender = userID;
     let group = groupChats.find((group) => (group.type === "private" && group.member.includes(userId) && group.member.includes(sender)));
+    console.log("GROUP", group);
     if (group) {
       requestGroupChat(group._id || "");
       socket?.timeout(500).emit("join_room", group._id, () => {
@@ -306,6 +307,7 @@ export default function MainPage() {
       });
     }
     else {
+      console.warn("Group not found, creating new group...");
       group = await onCreateGroup(userId, "private", [userId, sender]);
     }
     if(group){
