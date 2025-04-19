@@ -34,6 +34,7 @@ function formatSmartDate(dateString: string): string {
 
 
 export default function MessageBox({message}:{message:Message}) {
+  if(message.sendBy==null) return;
     const { data: session } = useSession();
     const userID= session?.user.id??""
     const isSelf = message.sendBy._id === userID; 

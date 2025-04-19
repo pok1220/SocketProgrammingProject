@@ -65,7 +65,7 @@ export default function MainPage() {
     };
 
     function onReceiveGroup(group: GroupChat) { // Handler Group From Other
-      console.log("Hello Group from other")
+      console.log("Hello Group from other", group)
       setGroupChats((previous) => [...previous, group]);
     }
 
@@ -224,7 +224,7 @@ export default function MainPage() {
     }
     group._id = res.data._id
     // Emit Group that Creating
-    socket?.timeout(5000).emit("create_room", group._id, () => {
+    socket?.timeout(5000).emit("create_room", group, () => {
       console.log("Create Group Emit Client");
     });
 
@@ -307,16 +307,6 @@ export default function MainPage() {
     }
     else {
       group = await onCreateGroup(userId, "private", [userId, sender]);
-      // const g:GroupChat={
-      //   member:[sender,userId],
-      //   message:[],
-      //   name:userId,
-      //   type:"private",
-      // }
-      // setGroupChats((previous) => [...previous, g]);
-      // if (group) {
-      //   await requestGroupChat(group._id || "");
-      // }
     }
     if(group){
       localStorage.setItem("currentGroupId", group._id || "");
