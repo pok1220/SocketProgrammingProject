@@ -8,7 +8,8 @@ declare module "next-auth"{
             email:string,
             token:string,
             isOn:string,
-            picture:string
+            picture:string,
+            id?:string
         }
     }
 }

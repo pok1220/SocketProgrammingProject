@@ -1,7 +1,7 @@
 export default async function userLogin(userEmail:string,userPassword:string) {
     console.log("hello",userEmail)
     console.log("password",userPassword)
-    const response = await fetch ("http://localhost:8080/api/v1/auth/login",{
+    const response = await fetch (`${process.env.NEXT_PUBLIC_BASE_URL}/auth/login`,{
         method:"post",
         headers:{
             "Content-Type":"application/json",
@@ -16,6 +16,6 @@ export default async function userLogin(userEmail:string,userPassword:string) {
         throw new Error("Failed to login")
     }
     const res= await response.json()
-    return res;
+    return res
 
 }

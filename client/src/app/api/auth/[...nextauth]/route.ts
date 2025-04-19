@@ -22,7 +22,6 @@ export const authOptions = {
         // e.g. return { id: 1, name: 'J Smith', email: 'jsmith@example.com' }
         // You can also use the `req` object to obtain additional parameters
         // (i.e., the request IP address)
-        console.log("WHAT")
         if(!credentials) return null
         
         const user=await userLogin(credentials.email,credentials.password)
@@ -41,11 +40,12 @@ export const authOptions = {
   },
   callbacks:{
     async jwt({token, user} : {token : any, user : any}){
-      console.log("user:",user)
+      // console.log("user:",user)
         if(user){
             token.id = user.data._id
             token.token = user.token
             token.name= user.data.name
+            token.isOn=user.data.isOn
         }
         return token;
     },
@@ -53,7 +53,9 @@ export const authOptions = {
         if(token){
             session.user.id = token.id as string;
             session.user.name = token.name;
-            session.user.token = token.token    
+            session.user.token = token.token   
+            session.user.isOn= token.isOn 
+            session.user.joinRoom=token.joinRoom
         }
         return session
     },
