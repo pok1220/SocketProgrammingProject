@@ -174,7 +174,7 @@ exports.leaveGroupChat = async (req, res, next) => {
       {
           $pull: {
               member: req.body.userId,
-              message: {userId: req.body.userId}
+              // message: {userId: req.body.userId}
           }
   })
 
